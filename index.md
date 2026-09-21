@@ -2,6 +2,7 @@
 
 ## Demos
 - [Chessboard Demo](chessboard)
+- [Cirle Generator](circles)
 
 ## Projects
 - First assignment will go here
