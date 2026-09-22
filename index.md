@@ -6,4 +6,4 @@
 - [Square Around Screen Edge](square-edge)
 
 ## Projects
-- First assignment will go here
+- [Interactive Scene](scene)
