@@ -1,16 +1,14 @@
 // Square Moving Around Edge of Screen
 
 let side = 125; //Change to Desired Size
-let speed = 300; //Change to Desired Speed
+let speed = 20; //Change to Desired Speed
 
 let x = 0;
 let y = 0;
 let going = true;
-let trueWidth = window.innerWidth - window.innerWidth % speed;
-let trueHeight = window.innerHeight - window.innerHeight % speed;
 
 async function setup() {
-  createCanvas(trueWidth, trueHeight);
+  createCanvas(windowWidth, windowHeight);
   noStroke();
 
 }
@@ -24,10 +22,10 @@ function draw() {
 
 function moveBox() {
   if (going) {
-    if (x < truewWidth - side) {
+    if (x < width - side) {
       x += speed;
     }
-    else if (y < trueHeight - side) {
+    else if (y < height - side) {
       y += speed;
     }
     else {
