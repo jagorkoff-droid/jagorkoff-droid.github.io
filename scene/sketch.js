@@ -39,10 +39,9 @@ let dragAmount = 0;
 
 let birdRadius = 30;
 
-let birdStartX;
-let birdStartY;
-
 let flyingBird = false;
+
+let releaseTime = 0;
 
 async function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -66,23 +65,30 @@ function draw() {
 }
 
 function windowResize() {
+  // Places slingshot at the same relative position on the screen
   slingshotX = (200 / 2560) * windowWidth;
   slingshotY = (1125 / 1440) * windowHeight;
 
+  // Changes the scale of the slingshot depending on screen size
   slingshotScaleX = (windowWidth / 2560) * 0.15;
   slingshotScaleY = (windowHeight / 1440) * 0.15;
 
+  // Changes the scale of the bird depending on screen size
   birdScaleX = (windowWidth / 2560) * 0.06;
   birdScaleY = (windowHeight / 1440) * 0.06;
 
+  // Finds the slingshot pull point and ensures it is the same relative to screen size
   slingshotPullX = slingshotX + 50 * slingshotScaleX / 0.15;
   slingshotPullY = slingshotY + -30 * slingshotScaleY / 0.15;
 
+  // Determines how far the bird can be pulled back depending on screen size
   maxDrag = (250 / 2560) * windowWidth;
 
+  // Calculates the bird dimensions based on predetermined scaling variables
   birdWidth = bird.width * birdScaleX;
   birdHeight = bird.height * birdScaleY;
 
+  // Resets the birds position when it is sitting still and finds its center
   if (!draggingBird && !flyingBird) {
     birdX = (260 / 2560) * windowWidth;
     birdY = (1125 / 1440) * windowHeight;
@@ -101,9 +107,11 @@ function displaySlingshot() {
 }
 
 function displaySlingshotBands() {
+  //Makes the lines dark grey and 8 pixels thick
   stroke(80);
   strokeWeight(8);
 
+  // When not dragging bird, creates a straight line across slingshot and then stops anything else from happening
   if (!draggingBird) {
     line(
       slingshotX + 50 * slingshotScaleX / 0.15,
@@ -115,6 +123,7 @@ function displaySlingshotBands() {
     return;
   }
 
+  // If the bird is being dragged, draws two bands, one from each of the points on the slingshot fork, and connects them at the bird's center
   line(
     slingshotX + 50 * slingshotScaleX / 0.15,
     slingshotY + 40 * slingshotScaleY / 0.15,
@@ -135,8 +144,10 @@ function displayBird() {
 }
 
 function mousePressed() {
+  // Finds distance between bird centre and where the mouse has clicked
   let distance = dist(mouseX, mouseY, birdCenterX, birdCenterY);
 
+  // If the mouse is closer to the bird than its radius (so mouse is on the bird), start dragging the bird
   if (distance < birdRadius) {
     draggingBird = true;
   }
@@ -147,13 +158,18 @@ function mouseReleased() {
     return;
   }
 
+  // Gives a multiplier ratio from 0 - 1 that varies depending on how far the bird has been pulled
   let power = dragAmount / maxDrag;
 
+  // Determines distances (and direction) between bird and slingshot pull point, multiplies that by an overall launch strength number, then by the multiplier ratio
   birdVelocityX = (slingshotPullX - birdX) * 0.15 * power;
   birdVelocityY = (slingshotPullY - birdY) * 0.18 * power;
 
   draggingBird = false;
   flyingBird = true;
+
+  // Sets current time of release to milliseconds passed
+  releaseTime = millis()
 }
 
 function mouseDragged() {
@@ -161,22 +177,28 @@ function mouseDragged() {
     return;
   }
 
+  // Calculates difference between mouse and slingshot pull point
   let dx = mouseX - slingshotPullX;
   let dy = mouseY - slingshotPullY;
 
+  // Finds distance in a line from mouse and slingshot pull point
   let distance = dist(mouseX, mouseY, slingshotPullX, slingshotPullY);
 
+  // Limits pull distance of bird if mouse goes beyond maximum pull distance
   if (distance > maxDrag) {
     dx = dx / distance * maxDrag;
     dy = dy / distance * maxDrag;
   }
 
+  // Places bird at mouse position relative to slingshot pull point
   birdX = slingshotPullX + dx;
   birdY = slingshotPullY + dy;
 
+  // Finds bird centre
   birdCenterX = birdX + birdWidth / 2;
   birdCenterY = birdY + birdHeight / 2;
 
+  // Records how far the bird has been pulled
   dragAmount = dist(birdX, birdY, slingshotPullX, slingshotPullY);
 }
 
@@ -185,17 +207,23 @@ function displayBirdTrajectory() {
     return;
   }
 
+  // Gives a multiplier ratio from 0 - 1 that varies depending on how far the bird has been pulled
   let power = dragAmount / maxDrag;
 
+  // Determines distances (and direction) between bird and slingshot pull point, multiplies that by an overall launch strength number, then by the multiplier ratio
   let velocityX = (slingshotPullX - birdX) * 0.15 * power;
   let velocityY = (slingshotPullY - birdY) * 0.18 * power;
 
   fill(255, 30, 30);
   noStroke();
 
-  for (let dotCounter = 1; dotCounter <= 45; dotCounter++) {
-    let time = dotCounter * 0.5;
+  // Creates 45 trajectory dots, gives each dot a time to represent a different time for where the bird will be (horizontal location), 
+  for (let dotCounter = 1; dotCounter <= 30; dotCounter++) {
+    let time = dotCounter * 0.75;
 
+    // Calculates the x position of each dot for a given time
+    // Calculates the y position of each dot, first by calculating where the bird would move vertically on its initial velocity, then adds the effect of gravity over time making a parabola
+    // Distance by acceleration = 1/2 * acceleration (gravity) * time^2
     let x = birdCenterX + velocityX * time;
     let y = birdCenterY + velocityY * time + 0.5 * gravity * time**2;
 
@@ -204,25 +232,31 @@ function displayBirdTrajectory() {
 }
 
 function moveBird() {
+  //Does nothing if the bird is being dragged or is not flying
   if (draggingBird || !flyingBird) {
     return;
   }
 
+  // Moves the bird horizontally and vertically based on predetermined velocities
   birdX += birdVelocityX;
   birdY += birdVelocityY;
 
+  // Updates the bird's centre
   birdCenterX = birdX + birdWidth / 2;
   birdCenterY = birdY + birdHeight / 2;
 
+  //Applies gravity to bird's velocity
   birdVelocityY += gravity;
 }
 
 function quitFlight() {
+  // Does nothing if the bird is not flying
   if (!flyingBird) {
     return;
   }
 
-  if (flyingBird && birdY > windowHeight || birdX < 0 || birdX > windowWidth) {
+  // If the bird is flying and is off of the screen (except from being too far up), stops the bird from flying, if 50 milliseconds have passed since the bird's release
+  if (flyingBird && (birdY > windowHeight - 140 || birdX < 0 || birdX > windowWidth) && !(millis() - releaseTime < 50)) {
     flyingBird = false;
   }
 }
