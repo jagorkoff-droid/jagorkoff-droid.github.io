@@ -61,6 +61,8 @@ function draw() {
   displayBirdTrajectory();
   displayBird();
   displaySlingshot();
+  quitFlight();
+  console.log(flyingBird)
 }
 
 function windowResize() {
@@ -191,13 +193,13 @@ function displayBirdTrajectory() {
   fill(255, 30, 30);
   noStroke();
 
-  for (let dotNumber = 1; dotNumber <= 45; dotNumber++) {
-    let time = dotNumber * 0.5;
+  for (let dotCounter = 1; dotCounter <= 45; dotCounter++) {
+    let time = dotCounter * 0.5;
 
     let x = birdCenterX + velocityX * time;
-    let y = birdCenterY + velocityY * time + 0.5 * gravity * time * time;
+    let y = birdCenterY + velocityY * time + 0.5 * gravity * time**2;
 
-    circle(x, y, 6)
+    circle(x, y, 6);
   }
 }
 
@@ -213,4 +215,14 @@ function moveBird() {
   birdCenterY = birdY + birdHeight / 2;
 
   birdVelocityY += gravity;
+}
+
+function quitFlight() {
+  if (!flyingBird) {
+    return;
+  }
+
+  if (flyingBird && birdY > windowHeight || birdX < 0 || birdX > windowWidth) {
+    flyingBird = false;
+  }
 }
