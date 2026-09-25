@@ -36,7 +36,7 @@ let birdVelocityY = 0;
 let gravity = 0.5;
 
 let maxDrag;
-let dragAmount = 0;
+let dragAmount = 0
 
 let birdRadius = 30;
 
