@@ -26,6 +26,7 @@ let birdWidth;
 let birdHeight;
 let birdCenterX;
 let birdCenterY;
+let birdAngle = 0;
 
 let draggingBird = false;
 
@@ -41,6 +42,10 @@ let birdRadius = 30;
 
 let flyingBird = false;
 
+let groundY;
+
+let rollingBird = false;
+
 let releaseTime = 0;
 
 async function setup() {
@@ -55,13 +60,13 @@ function draw() {
   windowResize();
 
   moveBird();
+  quitFlight();
+
   displayBackground();
   displaySlingshotBands();
   displayBirdTrajectory();
   displayBird();
   displaySlingshot();
-  quitFlight();
-  console.log(flyingBird)
 }
 
 function windowResize() {
@@ -87,6 +92,9 @@ function windowResize() {
   // Calculates the bird dimensions based on predetermined scaling variables
   birdWidth = bird.width * birdScaleX;
   birdHeight = bird.height * birdScaleY;
+
+  // Calculates the y-value of the ground depending on the screen height
+  groundY = windowHeight - (70/1440) * windowHeight;
 
   // Resets the birds position when it is sitting still and finds its center
   if (!draggingBird && !flyingBird) {
@@ -140,7 +148,22 @@ function displaySlingshotBands() {
 }
 
 function displayBird() {
-  image(bird, birdX, birdY, bird.width * birdScaleX, bird.height * birdScaleY);
+  // If not rolling, display image normally
+  if (!rollingBird) {
+    image(bird, birdX, birdY, birdWidth, birdHeight);
+    return;
+  }
+
+  // If bird is rolling, rotate bird
+  // push() saves the current draw settings and lets you change position or rotation without impacting the rest of the drawing
+  // translate() moves the drawing origin to its parameters (x, y), allowing rotation around the centre
+  // rotate() rotates everything that comes after it by birdAngle
+  // pop() restores drawing settings saved by push()
+  push();
+  translate(birdCenterX, birdCenterY);
+  rotate(birdAngle);
+  image(bird, -birdWidth / 2, -birdHeight / 2, birdWidth, birdHeight);
+  pop();
 }
 
 function mousePressed() {
@@ -162,13 +185,13 @@ function mouseReleased() {
   let power = dragAmount / maxDrag;
 
   // Determines distances (and direction) between bird and slingshot pull point, multiplies that by an overall launch strength number, then by the multiplier ratio
-  birdVelocityX = (slingshotPullX - birdX) * 0.15 * power;
-  birdVelocityY = (slingshotPullY - birdY) * 0.18 * power;
+  birdVelocityX = (slingshotPullX - birdX) * 0.12 * power;
+  birdVelocityY = (slingshotPullY - birdY) * 0.15 * power;
 
   draggingBird = false;
   flyingBird = true;
-
-  // Sets current time of release to milliseconds passed
+  rollingBird = false;
+  birdAngle = 0;
   releaseTime = millis()
 }
 
@@ -211,19 +234,19 @@ function displayBirdTrajectory() {
   let power = dragAmount / maxDrag;
 
   // Determines distances (and direction) between bird and slingshot pull point, multiplies that by an overall launch strength number, then by the multiplier ratio
-  let velocityX = (slingshotPullX - birdX) * 0.15 * power;
-  let velocityY = (slingshotPullY - birdY) * 0.18 * power;
+  let velocityX = (slingshotPullX - birdX) * 0.12 * power;
+  let velocityY = (slingshotPullY - birdY) * 0.15 * power;
 
   fill(255, 30, 30);
   noStroke();
 
-  // Creates 45 trajectory dots, gives each dot a time to represent a different time for where the bird will be (horizontal location), 
+  // Creates 30 trajectory dots, gives each dot a time to represent a different time for where the bird will be (horizontal location), 
   for (let dotCounter = 1; dotCounter <= 30; dotCounter++) {
     let time = dotCounter * 0.75;
 
     // Calculates the x position of each dot for a given time
     // Calculates the y position of each dot, first by calculating where the bird would move vertically on its initial velocity, then adds the effect of gravity over time making a parabola
-    // Distance by acceleration = 1/2 * acceleration (gravity) * time^2
+    // Distance by acceleration (position) = starting position + initial velocity * time - 1/2 * gravity (acceleration) * time^2
     let x = birdCenterX + velocityX * time;
     let y = birdCenterY + velocityY * time + 0.5 * gravity * time**2;
 
@@ -232,7 +255,7 @@ function displayBirdTrajectory() {
 }
 
 function moveBird() {
-  //Does nothing if the bird is being dragged or is not flying
+  // Does nothing if the bird is being dragged or is not flying
   if (draggingBird || !flyingBird) {
     return;
   }
@@ -245,8 +268,10 @@ function moveBird() {
   birdCenterX = birdX + birdWidth / 2;
   birdCenterY = birdY + birdHeight / 2;
 
-  //Applies gravity to bird's velocity
-  birdVelocityY += gravity;
+  // Applies gravity to bird's velocity if its not rolling
+  if (!rollingBird) {
+    birdVelocityY += gravity;
+  }
 }
 
 function quitFlight() {
@@ -255,8 +280,38 @@ function quitFlight() {
     return;
   }
 
-  // If the bird is flying and is off of the screen (except from being too far up), stops the bird from flying, if 50 milliseconds have passed since the bird's release
-  if (flyingBird && (birdY > windowHeight - 140 || birdX < 0 || birdX > windowWidth) && !(millis() - releaseTime < 50)) {
+  // Checks if bird has hit ground and 50 milliseconds have passed since the bird's release, puts bird exactly on ground
+  if (birdY + birdHeight >= groundY && millis() - releaseTime > 50) {
+    birdY = groundY - birdHeight;
+
+    // Checks if the birds vertical speed is greater than five, if it is, it reverses the vertical direction and reduces the velocity by 70%, it also reduces horizontal velocity by 30%
+    if (abs(birdVelocityY) > 5) {
+      birdVelocityY *= -0.3;
+      birdVelocityX *= 0.7;
+    }
+
+    // If the vertical speed is not greater than five, stop any vertical movement, and start bird rolling
+    else {
+      birdVelocityY = 0;
+      rollingBird = true;
+    }
+  }
+
+  // Checks if bird is rolling, decreases horizontal velocity by 5%, rotates the bird by (current horizontal velocity multipled by 0.03) radians
+  if (rollingBird) {
+    birdVelocityX *= 0.95;
+    birdAngle += birdVelocityX * 0.03;
+
+    // Checks if the horizontal velocity is less than 0.3, if it is, stops horizontal movement, stops rolling, and stops flying, to allow the bird to be respawned
+    if (abs(birdVelocityX) < 0.3) {
+      birdVelocityX = 0;
+      rollingBird = false;
+      flyingBird = false;
+    }
+  }
+
+  // Stops bird if it goes off sides
+  if (birdX < 0 || birdX > windowWidth) {
     flyingBird = false;
   }
 }
