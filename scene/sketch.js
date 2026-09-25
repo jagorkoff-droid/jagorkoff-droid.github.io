@@ -9,6 +9,10 @@ let backgroundImage;
 let backgroundImageX = 0;
 let backgroundImageY = 0;
 
+let pointer;
+let pointerScaleX;
+let pointerScaleY;
+
 let slingshot;
 let slingshotX;
 let slingshotY;
@@ -33,6 +37,9 @@ let draggingBird = false;
 let birdVelocityX = 0;
 let birdVelocityY = 0;
 
+let strengthX;
+let strengthY;
+
 let gravity = 0.5;
 
 let maxDrag;
@@ -51,6 +58,7 @@ let releaseTime = 0;
 async function setup() {
   createCanvas(windowWidth, windowHeight);
 
+  pointer = await loadImage("angry_birds_pointer.png")
   backgroundImage = await loadImage("background_image.jpeg");
   slingshot = await loadImage("slingshot.png");
   bird = await loadImage("red_angry_bird.png");
@@ -67,9 +75,17 @@ function draw() {
   displayBirdTrajectory();
   displayBird();
   displaySlingshot();
+  displayPointer();
 }
 
 function windowResize() {
+  // Changes scale of the pointer to ensure it is the same proportional size on different screens
+  pointerScaleX = 40;
+  pointerScaleY = 40;
+
+  pointerCentreX = 
+  pointerCentreY = 
+
   // Places slingshot at the same relative position on the screen
   slingshotX = (200 / 2560) * windowWidth;
   slingshotY = (1125 / 1440) * windowHeight;
@@ -85,6 +101,9 @@ function windowResize() {
   // Finds the slingshot pull point and ensures it is the same relative to screen size
   slingshotPullX = slingshotX + 50 * slingshotScaleX / 0.15;
   slingshotPullY = slingshotY + -30 * slingshotScaleY / 0.15;
+
+  strengthX = (windowWidth / 2560) * 0.195;
+  strengthY = (windowHeight / 1440) * 0.195;
 
   // Determines how far the bird can be pulled back depending on screen size
   maxDrag = (250 / 2560) * windowWidth;
@@ -108,6 +127,11 @@ function windowResize() {
 
 function displayBackground() {
   image(backgroundImage, backgroundImageX, backgroundImageY, windowWidth, windowHeight);
+}
+
+function displayPointer() {
+  translate(pointerCentreX, pointerCentreY)
+  image(pointer, mouseX, mouseY, pointerScaleX, pointerScaleY);
 }
 
 function displaySlingshot() {
@@ -137,7 +161,7 @@ function displaySlingshotBands() {
     slingshotY + 40 * slingshotScaleY / 0.15,
     birdCenterX,
     birdCenterY
-  )
+  );
 
   line(
     slingshotX + 150 * slingshotScaleX / 0.15,
@@ -185,8 +209,8 @@ function mouseReleased() {
   let power = dragAmount / maxDrag;
 
   // Determines distances (and direction) between bird and slingshot pull point, multiplies that by an overall launch strength number, then by the multiplier ratio
-  birdVelocityX = (slingshotPullX - birdX) * 0.12 * power;
-  birdVelocityY = (slingshotPullY - birdY) * 0.15 * power;
+  birdVelocityX = (slingshotPullX - birdX) * strengthX * power;
+  birdVelocityY = (slingshotPullY - birdY) * strengthY * power;
 
   draggingBird = false;
   flyingBird = true;
@@ -234,8 +258,8 @@ function displayBirdTrajectory() {
   let power = dragAmount / maxDrag;
 
   // Determines distances (and direction) between bird and slingshot pull point, multiplies that by an overall launch strength number, then by the multiplier ratio
-  let velocityX = (slingshotPullX - birdX) * 0.12 * power;
-  let velocityY = (slingshotPullY - birdY) * 0.15 * power;
+  let velocityX = (slingshotPullX - birdX) * strengthX * power;
+  let velocityY = (slingshotPullY - birdY) * strengthY * power;
 
   fill(255, 30, 30);
   noStroke();
@@ -302,7 +326,7 @@ function quitFlight() {
     birdVelocityX *= 0.95;
     birdAngle += birdVelocityX * 0.03;
 
-    // Checks if the horizontal velocity is less than 0.3, if it is, stops horizontal movement, stops rolling, and stops flying, to allow the bird to be respawned
+    // Checks if the horizontal speed is less than 0.3, if it is, stops horizontal movement, stops rolling, and stops flying, to allow the bird to be respawned
     if (abs(birdVelocityX) < 0.3) {
       birdVelocityX = 0;
       rollingBird = false;
@@ -313,5 +337,6 @@ function quitFlight() {
   // Stops bird if it goes off sides
   if (birdX < 0 || birdX > windowWidth) {
     flyingBird = false;
+    rollingBird = false;
   }
 }
