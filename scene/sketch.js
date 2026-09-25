@@ -1,4 +1,4 @@
-// Interative Scene
+// Interactive Scene
 // James Gorkoff
 // September 22, 2026
 //
@@ -36,7 +36,7 @@ let birdVelocityY = 0;
 let gravity = 0.5;
 
 let maxDrag;
-let dragAmount = 0
+let dragAmount = 0;
 
 let birdRadius = 30;
 
@@ -192,7 +192,7 @@ function mouseReleased() {
   flyingBird = true;
   rollingBird = false;
   birdAngle = 0;
-  releaseTime = millis()
+  releaseTime = millis();
 }
 
 function mouseDragged() {
