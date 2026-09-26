@@ -12,6 +12,8 @@ let backgroundImageY = 0;
 let pointer;
 let pointerScaleX;
 let pointerScaleY;
+let pointerOffsetX;
+let pointerOffsetY;
 
 let slingshot;
 let slingshotX;
@@ -45,7 +47,7 @@ let gravity = 0.5;
 let maxDrag;
 let dragAmount = 0;
 
-let birdRadius = 30;
+let birdRadius;
 
 let flyingBird = false;
 
@@ -53,10 +55,13 @@ let groundY;
 
 let rollingBird = false;
 
+let stoppedBouncing = true;
+
 let releaseTime = 0;
 
 async function setup() {
   createCanvas(windowWidth, windowHeight);
+  noCursor()
 
   pointer = await loadImage("angry_birds_pointer.png")
   backgroundImage = await loadImage("background_image.jpeg");
@@ -80,11 +85,12 @@ function draw() {
 
 function windowResize() {
   // Changes scale of the pointer to ensure it is the same proportional size on different screens
-  pointerScaleX = 40;
-  pointerScaleY = 40;
+  pointerScaleX = (windowWidth / 2560) * 60;
+  pointerScaleY = (windowHeight / 1440) * 60;
 
-  pointerCentreX = 
-  pointerCentreY = 
+  // Changes pointer location to be proper on all screen sizes
+  pointerOffsetX = (windowWidth / 2560) * 15.25;
+  pointerOffsetY = (windowHeight / 1440) * 5.75;
 
   // Places slingshot at the same relative position on the screen
   slingshotX = (200 / 2560) * windowWidth;
@@ -98,15 +104,19 @@ function windowResize() {
   birdScaleX = (windowWidth / 2560) * 0.06;
   birdScaleY = (windowHeight / 1440) * 0.06;
 
+  // Scales bird radius proportionally using both the window width and height
+  birdRadius = (sqrt(windowWidth**2 + windowHeight **2) / sqrt(8627200)) * 34;
+
   // Finds the slingshot pull point and ensures it is the same relative to screen size
   slingshotPullX = slingshotX + 50 * slingshotScaleX / 0.15;
   slingshotPullY = slingshotY + -30 * slingshotScaleY / 0.15;
 
-  strengthX = (windowWidth / 2560) * 0.195;
-  strengthY = (windowHeight / 1440) * 0.195;
+  // Scales strength to be proportional to window size
+  strengthX = (2560 / windowWidth) * 0.13;
+  strengthY = (1440 / windowHeight) * 0.13;
 
   // Determines how far the bird can be pulled back depending on screen size
-  maxDrag = (250 / 2560) * windowWidth;
+  maxDrag = (275 / 1440) * min(windowWidth, windowHeight);
 
   // Calculates the bird dimensions based on predetermined scaling variables
   birdWidth = bird.width * birdScaleX;
@@ -130,8 +140,7 @@ function displayBackground() {
 }
 
 function displayPointer() {
-  translate(pointerCentreX, pointerCentreY)
-  image(pointer, mouseX, mouseY, pointerScaleX, pointerScaleY);
+  image(pointer, mouseX - pointerOffsetX, mouseY - pointerOffsetY, pointerScaleX, pointerScaleY);
 }
 
 function displaySlingshot() {
@@ -194,8 +203,8 @@ function mousePressed() {
   // Finds distance between bird centre and where the mouse has clicked
   let distance = dist(mouseX, mouseY, birdCenterX, birdCenterY);
 
-  // If the mouse is closer to the bird than its radius (so mouse is on the bird), start dragging the bird
-  if (distance < birdRadius) {
+  // If the mouse is closer to the bird than its radius (so mouse is on the bird), start dragging the bird as long as it is not already flying
+  if (distance < birdRadius && !flyingBird) {
     draggingBird = true;
   }
 }
@@ -215,6 +224,7 @@ function mouseReleased() {
   draggingBird = false;
   flyingBird = true;
   rollingBird = false;
+  stoppedBouncing = false;
   birdAngle = 0;
   releaseTime = millis();
 }
@@ -293,7 +303,7 @@ function moveBird() {
   birdCenterY = birdY + birdHeight / 2;
 
   // Applies gravity to bird's velocity if its not rolling
-  if (!rollingBird) {
+  if (!stoppedBouncing) {
     birdVelocityY += gravity;
   }
 }
@@ -305,32 +315,34 @@ function quitFlight() {
   }
 
   // Checks if bird has hit ground and 50 milliseconds have passed since the bird's release, puts bird exactly on ground
-  if (birdY + birdHeight >= groundY && millis() - releaseTime > 50) {
+  if (birdY + birdHeight >= groundY && millis() - releaseTime > 200) {
     birdY = groundY - birdHeight;
 
-    // Checks if the birds vertical speed is greater than five, if it is, it reverses the vertical direction and reduces the velocity by 70%, it also reduces horizontal velocity by 30%
+    // Checks if the birds vertical speed is greater than five, if it is, it reverses the vertical direction and reduces the velocity by 50%, it also reduces horizontal velocity by 20%
     if (abs(birdVelocityY) > 5) {
-      birdVelocityY *= -0.3;
-      birdVelocityX *= 0.7;
+      birdVelocityY *= -0.5;
+      birdVelocityX *= 0.8;
+      rollingBird = true;
     }
 
     // If the vertical speed is not greater than five, stop any vertical movement, and start bird rolling
     else {
       birdVelocityY = 0;
-      rollingBird = true;
+      stoppedBouncing = true;
     }
   }
 
-  // Checks if bird is rolling, decreases horizontal velocity by 5%, rotates the bird by (current horizontal velocity multipled by 0.03) radians
+  // Checks if bird is rolling, decreases horizontal velocity by 3%, rotates the bird by (current horizontal velocity multipled by 0.03) radians
   if (rollingBird) {
-    birdVelocityX *= 0.95;
+    birdVelocityX *= 0.97;
     birdAngle += birdVelocityX * 0.03;
 
-    // Checks if the horizontal speed is less than 0.3, if it is, stops horizontal movement, stops rolling, and stops flying, to allow the bird to be respawned
-    if (abs(birdVelocityX) < 0.3) {
+    // Checks if the horizontal speed is less than 0.1, if it is, stops horizontal movement, stops rolling, and stops flying, to allow the bird to be respawned
+    if (abs(birdVelocityX) < 0.1) {
       birdVelocityX = 0;
       rollingBird = false;
       flyingBird = false;
+      stoppedBouncing = true;
     }
   }
 
@@ -338,5 +350,6 @@ function quitFlight() {
   if (birdX < 0 || birdX > windowWidth) {
     flyingBird = false;
     rollingBird = false;
+    stoppedBouncing = true;
   }
 }
