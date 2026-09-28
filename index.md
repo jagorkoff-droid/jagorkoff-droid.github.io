@@ -5,6 +5,7 @@
 - [Cirle Generator](circles)
 - [Square Around Screen Edge](square-edge)
 - [Millis Demo](millis)
+- [Traffic Light](traffic-light)
 
 ## Projects
 - [Interactive Scene](scene)
