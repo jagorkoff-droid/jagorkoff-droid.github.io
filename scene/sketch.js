@@ -59,6 +59,22 @@ let stoppedBouncing = true;
 
 let releaseTime = 0;
 
+let tallBlock;
+let tallBlockScaleX;
+let tallBlockScaleY;
+
+let shortBlock;
+let shortBlockScaleX;
+let shortBlockScaleY;
+
+let boulder;
+let boulderScaleX;
+let boulderScaleY;
+
+let pig;
+let pigScaleX;
+let pigScaleY;
+
 async function setup() {
   createCanvas(windowWidth, windowHeight);
   noCursor()
@@ -67,6 +83,10 @@ async function setup() {
   backgroundImage = await loadImage("background_image.jpeg");
   slingshot = await loadImage("slingshot.png");
   bird = await loadImage("red_angry_bird.png");
+  tallBlock = await loadImage("tall_block.png")
+  shortBlock = await loadImage("short_block.png")
+  boulder = await loadImage("boulder.png")
+  pig = await loadImage("pig.png")
 }
 
 function draw() {
@@ -76,6 +96,7 @@ function draw() {
   quitFlight();
 
   displayBackground();
+
   displaySlingshotBands();
   displayBirdTrajectory();
   displayBird();
@@ -84,6 +105,9 @@ function draw() {
 }
 
 function windowResize() {
+  // Calculates the y-value of the ground depending on the screen height
+  groundY = windowHeight - (70/1440) * windowHeight;
+
   // Changes scale of the pointer to ensure it is the same proportional size on different screens
   pointerScaleX = (windowWidth / 2560) * 60;
   pointerScaleY = (windowHeight / 1440) * 60;
@@ -112,8 +136,8 @@ function windowResize() {
   slingshotPullY = slingshotY + -30 * slingshotScaleY / 0.15;
 
   // Scales strength to be proportional to window size
-  strengthX = (2560 / windowWidth) * 0.13;
-  strengthY = (1440 / windowHeight) * 0.13;
+  strengthX = (windowWidth / 2560) * 0.14;
+  strengthY = (windowHeight / 1440) * 0.14;
 
   // Determines how far the bird can be pulled back depending on screen size
   maxDrag = (275 / 1440) * min(windowWidth, windowHeight);
@@ -121,9 +145,6 @@ function windowResize() {
   // Calculates the bird dimensions based on predetermined scaling variables
   birdWidth = bird.width * birdScaleX;
   birdHeight = bird.height * birdScaleY;
-
-  // Calculates the y-value of the ground depending on the screen height
-  groundY = windowHeight - (70/1440) * windowHeight;
 
   // Resets the birds position when it is sitting still and finds its center
   if (!draggingBird && !flyingBird) {
@@ -193,9 +214,11 @@ function displayBird() {
   // rotate() rotates everything that comes after it by birdAngle
   // pop() restores drawing settings saved by push()
   push();
+
   translate(birdCenterX, birdCenterY);
   rotate(birdAngle);
   image(bird, -birdWidth / 2, -birdHeight / 2, birdWidth, birdHeight);
+
   pop();
 }
 
@@ -352,4 +375,20 @@ function quitFlight() {
     rollingBird = false;
     stoppedBouncing = true;
   }
+}
+
+function displayTallBlock(x, y) {
+ 
+}
+
+function displayShortBlock(x, y) {
+ 
+}
+
+function displayBoulder(x, y) {
+  
+}
+
+function displayPig(x, y) {
+  
 }
