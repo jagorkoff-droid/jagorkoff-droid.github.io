@@ -42,7 +42,7 @@ let birdVelocityY = 0;
 let strengthX;
 let strengthY;
 
-let gravity = 0.5;
+let gravity;
 
 let maxDrag;
 let dragAmount = 0;
@@ -60,8 +60,8 @@ let stoppedBouncing = true;
 let releaseTime = 0;
 
 let tallBlock;
-let tallBlockScaleX;
-let tallBlockScaleY;
+let tallBlockScaleX = 1
+let tallBlockScaleY = 1
 
 let shortBlock;
 let shortBlockScaleX;
@@ -77,16 +77,16 @@ let pigScaleY;
 
 async function setup() {
   createCanvas(windowWidth, windowHeight);
-  noCursor()
+  noCursor();
 
-  pointer = await loadImage("angry_birds_pointer.png")
+  pointer = await loadImage("angry_birds_pointer.png");
   backgroundImage = await loadImage("background_image.jpeg");
   slingshot = await loadImage("slingshot.png");
   bird = await loadImage("red_angry_bird.png");
-  tallBlock = await loadImage("tall_block.png")
-  shortBlock = await loadImage("short_block.png")
-  boulder = await loadImage("boulder.png")
-  pig = await loadImage("pig.png")
+  tallBlock = await loadImage("tall_block.png");
+  shortBlock = await loadImage("short_block.png");
+  boulder = await loadImage("boulder.png");
+  pig = await loadImage("pig.png");
 }
 
 function draw() {
@@ -96,6 +96,8 @@ function draw() {
   quitFlight();
 
   displayBackground();
+
+  displayTallBlock(500, 500)
 
   displaySlingshotBands();
   displayBirdTrajectory();
@@ -107,6 +109,8 @@ function draw() {
 function windowResize() {
   // Calculates the y-value of the ground depending on the screen height
   groundY = windowHeight - (70/1440) * windowHeight;
+
+  gravity = (windowHeight / 1440) * 0.5;
 
   // Changes scale of the pointer to ensure it is the same proportional size on different screens
   pointerScaleX = (windowWidth / 2560) * 60;
@@ -136,8 +140,8 @@ function windowResize() {
   slingshotPullY = slingshotY + -30 * slingshotScaleY / 0.15;
 
   // Scales strength to be proportional to window size
-  strengthX = (windowWidth / 2560) * 0.14;
-  strengthY = (windowHeight / 1440) * 0.14;
+  strengthX =  0.12;
+  strengthY =  0.12;
 
   // Determines how far the bird can be pulled back depending on screen size
   maxDrag = (275 / 1440) * min(windowWidth, windowHeight);
@@ -238,7 +242,7 @@ function mouseReleased() {
   }
 
   // Gives a multiplier ratio from 0 - 1 that varies depending on how far the bird has been pulled
-  let power = dragAmount / maxDrag;
+  let power = (dragAmount * (sqrt(windowWidth**2 + windowHeight **2) / sqrt(8627200))) / (maxDrag * (sqrt(windowWidth**2 + windowHeight **2) / sqrt(8627200)));
 
   // Determines distances (and direction) between bird and slingshot pull point, multiplies that by an overall launch strength number, then by the multiplier ratio
   birdVelocityX = (slingshotPullX - birdX) * strengthX * power;
@@ -288,7 +292,7 @@ function displayBirdTrajectory() {
   }
 
   // Gives a multiplier ratio from 0 - 1 that varies depending on how far the bird has been pulled
-  let power = dragAmount / maxDrag;
+  let power = (dragAmount * (sqrt(windowWidth**2 + windowHeight **2) / sqrt(8627200))) / (maxDrag * (sqrt(windowWidth**2 + windowHeight **2) / sqrt(8627200)));
 
   // Determines distances (and direction) between bird and slingshot pull point, multiplies that by an overall launch strength number, then by the multiplier ratio
   let velocityX = (slingshotPullX - birdX) * strengthX * power;
@@ -378,7 +382,14 @@ function quitFlight() {
 }
 
 function displayTallBlock(x, y) {
- 
+  push();
+
+  imageMode(CENTER);
+  translate(x, y);
+  rotate(3 * PI / 2);
+  image(tallBlock, 0, 0, tallBlock.width * tallBlockScaleX, tallBlock.height * tallBlockScaleY );
+
+  pop();
 }
 
 function displayShortBlock(x, y) {
