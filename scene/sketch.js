@@ -60,8 +60,9 @@ let stoppedBouncing = true;
 let releaseTime = 0;
 
 let tallBlock;
-let tallBlockScaleX = 1
-let tallBlockScaleY = 1
+let tallBlockScaleX = 1;
+let tallBlockScaleY = 1;
+let tallBlocks;
 
 let shortBlock;
 let shortBlockScaleX;
@@ -97,7 +98,9 @@ function draw() {
 
   displayBackground();
 
-  displayTallBlock(500, 500)
+  for (let i = 0; i < tallBlocks.length; i++) {
+    displayTallBlock(tallBlocks[i].x, tallBlocks[i].y);
+  }
 
   displaySlingshotBands();
   displayBirdTrajectory();
@@ -111,6 +114,17 @@ function windowResize() {
   groundY = windowHeight - (70/1440) * windowHeight;
 
   gravity = (windowHeight / 1440) * 0.5;
+
+  tallBlockScaleX = 1 * (windowWidth / 1920);
+  tallBlockScaleY = 1 * (windowHeight / 1080);
+
+  tallBlocks = [
+    {x: 1000 * (windowWidth / 1920), y: groundY - tallBlock.width / 2},
+    {x: 1200 * (windowWidth / 1920), y: groundY - tallBlock.width / 2},
+    {x: 1400 * (windowWidth / 1920), y: groundY - tallBlock.width / 2},
+    {x: 1600 * (windowWidth / 1920), y: groundY - tallBlock.width / 2},
+    {x: 1800 * (windowWidth / 1920), y: groundY - tallBlock.width / 2}
+  ];
 
   // Changes scale of the pointer to ensure it is the same proportional size on different screens
   pointerScaleX = (windowWidth / 2560) * 60;
@@ -242,7 +256,7 @@ function mouseReleased() {
   }
 
   // Gives a multiplier ratio from 0 - 1 that varies depending on how far the bird has been pulled
-  let power = (dragAmount * (sqrt(windowWidth**2 + windowHeight **2) / sqrt(8627200))) / (maxDrag * (sqrt(windowWidth**2 + windowHeight **2) / sqrt(8627200)));
+  let power = dragAmount / maxDrag;
 
   // Determines distances (and direction) between bird and slingshot pull point, multiplies that by an overall launch strength number, then by the multiplier ratio
   birdVelocityX = (slingshotPullX - birdX) * strengthX * power;
@@ -292,7 +306,7 @@ function displayBirdTrajectory() {
   }
 
   // Gives a multiplier ratio from 0 - 1 that varies depending on how far the bird has been pulled
-  let power = (dragAmount * (sqrt(windowWidth**2 + windowHeight **2) / sqrt(8627200))) / (maxDrag * (sqrt(windowWidth**2 + windowHeight **2) / sqrt(8627200)));
+  let power = dragAmount / maxDrag;
 
   // Determines distances (and direction) between bird and slingshot pull point, multiplies that by an overall launch strength number, then by the multiplier ratio
   let velocityX = (slingshotPullX - birdX) * strengthX * power;
@@ -387,7 +401,7 @@ function displayTallBlock(x, y) {
   imageMode(CENTER);
   translate(x, y);
   rotate(3 * PI / 2);
-  image(tallBlock, 0, 0, tallBlock.width * tallBlockScaleX, tallBlock.height * tallBlockScaleY );
+  image(tallBlock, 0, 0, tallBlock.width * tallBlockScaleY, tallBlock.height * tallBlockScaleX);
 
   pop();
 }
