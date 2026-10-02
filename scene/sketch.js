@@ -153,7 +153,7 @@ function draw() {
 function windowResize() {
   titleSize = (windowWidth / 1440) * 84
 
-  titleX = windowwidth / 2 + 5 * (windowWidth / 1440);
+  titleX = windowWidth / 2 + 5 * (windowWidth / 1440);
   titleY = windowHeight * 0.2 + 5 * (windowHeight / 900);
 
   // Calculates the y-value of the ground depending on the screen height
@@ -636,9 +636,9 @@ function displayStartScreen() {
   ellipse(1000, 590, 1200, 650);
 
   fill(139, 69, 13);
-  rect(0, windowHeight - 40, width, 40);
+  rect(0, windowHeight - 40 * (windowHeight / 900), windowWidth, 40 * (windowHeight / 900));
   fill(50, 205, 50);
-  rect(0, height - 45, width, 5);
+  rect(0, windowHeight - 45 * (windowHeight / 900), windowWidth, 5 * (windowHeight / 900));
 
   textAlign(CENTER, CENTER);
   textStyle(BOLD);
@@ -646,4 +646,7 @@ function displayStartScreen() {
   fill(50, 50, 50, 150);
   textSize(titleSize);
   text("FRUSTRATED BIRDS", titleX, titleY);
+
+  fill(200);
+  rect(windowWidth / 2 - 100 * (windowWidth / 1440), windowHeight / 2 + 100 * (windowHeight / 900), 200 * (windowWidth / 1440), 100 * (windowHeight / 900));
 }
