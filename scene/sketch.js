@@ -11,6 +11,10 @@ let titleSize;
 let titleX;
 let titleY;
 
+let buttonTextSize;
+let buttonX;
+let buttonY;
+
 let backgroundImage;
 let backgroundImageX = 0;
 let backgroundImageY = 0;
@@ -105,7 +109,6 @@ async function setup() {
   boulder = await loadImage("boulder.png");
   pig = await loadImage("pig.png");
 
-  timerStart = millis();
   timerStopped = false;
 
   windowResize();
@@ -114,7 +117,7 @@ async function setup() {
 function draw() {
   if (screen === "start") {
     displayStartScreen();
-    displayPointer();
+    quitFlight();
   }
 
   if (screen === "game") {
@@ -144,17 +147,22 @@ function draw() {
     displayBirdTrajectory();
     displayBird();
     displaySlingshot();
-    displayPointer();
   
     displayTimer();
   }
+
+  displayPointer();
 }
 
 function windowResize() {
-  titleSize = (windowWidth / 1440) * 84
+  titleSize = (sqrt(windowWidth**2 + windowHeight **2) / sqrt(8627200)) * 120;
 
   titleX = windowWidth / 2 + 5 * (windowWidth / 1440);
   titleY = windowHeight * 0.2 + 5 * (windowHeight / 900);
+
+  buttonTextSize = (sqrt(windowWidth**2 + windowHeight **2) / sqrt(8627200)) * 80;
+  buttonX = windowWidth / 2;
+  buttonY = windowHeight / 2 + 150 * (windowHeight / 900);
 
   // Calculates the y-value of the ground depending on the screen height
   groundY = windowHeight - (70/1440) * windowHeight;
@@ -320,6 +328,11 @@ function displayBird() {
 }
 
 function mousePressed() {
+  if (mouseX >= windowWidth / 2 - 100 * (windowWidth / 1440) && mouseY >= windowHeight / 2 + 100 * (windowHeight / 900) && mouseX <= windowWidth / 2 - 100 * (windowWidth / 1440) + 200 * (windowWidth / 1440) && mouseY <= windowHeight / 2 + 100 * (windowHeight / 900) + 100 * (windowHeight / 900) && screen === "start") {
+    screen = "game";
+    timerStart = millis();
+  };
+
   // Finds distance between bird centre and where the mouse has clicked
   let distance = dist(mouseX, mouseY, birdCenterX, birdCenterY);
 
@@ -563,6 +576,7 @@ function checkCollisions() {
         gameComplete = true;
         timerStopped = true;
         finalTime = millis() - timerStart;
+        screen = "start";
       }
 
       return;
@@ -632,8 +646,8 @@ function displayStartScreen() {
 
   noStroke();
   fill(34, 139, 34);
-  ellipse(100, 620, 1100, 600);
-  ellipse(1000, 590, 1200, 650);
+  ellipse(100 * (windowWidth / 1440), 720 * (windowHeight / 900), 1100 * (windowWidth / 1440), 600 * (windowHeight / 900));
+  ellipse(1000 * (windowWidth / 1440), 690 * (windowHeight / 900), 1200 * (windowWidth / 1440), 650 * (windowHeight / 900));
 
   fill(139, 69, 13);
   rect(0, windowHeight - 40 * (windowHeight / 900), windowWidth, 40 * (windowHeight / 900));
@@ -645,8 +659,12 @@ function displayStartScreen() {
 
   fill(50, 50, 50, 150);
   textSize(titleSize);
-  text("FRUSTRATED BIRDS", titleX, titleY);
+  text("AGITATED AVIANS", titleX, titleY);
 
   fill(200);
   rect(windowWidth / 2 - 100 * (windowWidth / 1440), windowHeight / 2 + 100 * (windowHeight / 900), 200 * (windowWidth / 1440), 100 * (windowHeight / 900));
+
+  fill(50, 50, 255);
+  textSize(buttonTextSize);
+  text("Start", buttonX, buttonY);
 }
