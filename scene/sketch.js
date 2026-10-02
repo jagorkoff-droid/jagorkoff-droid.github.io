@@ -5,6 +5,12 @@
 // Extra for Experts:
 // - describe what you did to take this project "above and beyond"
 
+let screen = "start";
+
+let titleSize;
+let titleX;
+let titleY;
+
 let backgroundImage;
 let backgroundImageX = 0;
 let backgroundImageY = 0;
@@ -106,38 +112,50 @@ async function setup() {
 }
 
 function draw() {
-  moveBird();
-  checkCollisions();
-  quitFlight();
-
-  displayBackground();
-
-  for (let i = 0; i < tallBlocks.length; i++) {
-    displayTallBlock(tallBlocks[i].x, tallBlocks[i].y);
+  if (screen === "start") {
+    displayStartScreen();
+    displayPointer();
   }
 
-  for (let i = 0; i < shortBlocks.length; i++) {
-    displayShortBlock(shortBlocks[i].x, shortBlocks[i].y)
+  if (screen === "game") {
+    moveBird();
+    checkCollisions();
+    quitFlight();
+  
+    displayBackground();
+  
+    for (let i = 0; i < tallBlocks.length; i++) {
+      displayTallBlock(tallBlocks[i].x, tallBlocks[i].y);
+    }
+  
+    for (let i = 0; i < shortBlocks.length; i++) {
+      displayShortBlock(shortBlocks[i].x, shortBlocks[i].y)
+    }
+  
+    for (let i = 0; i < boulders.length; i++) {
+      displayBoulder(boulders[i].x, boulders[i].y)
+    }
+  
+    for (let i = 0; i < pigs.length; i++) {
+      displayPig(pigs[i].x, pigs[i].y)
+    }
+  
+    displaySlingshotBands();
+    displayBirdTrajectory();
+    displayBird();
+    displaySlingshot();
+    displayPointer();
+  
+    displayTimer();
   }
-
-  for (let i = 0; i < boulders.length; i++) {
-    displayBoulder(boulders[i].x, boulders[i].y)
-  }
-
-  for (let i = 0; i < pigs.length; i++) {
-    displayPig(pigs[i].x, pigs[i].y)
-  }
-
-  displaySlingshotBands();
-  displayBirdTrajectory();
-  displayBird();
-  displaySlingshot();
-  displayPointer();
-
-  displayTimer();
 }
 
 function windowResize() {
+  titleSize = (windowWidth / 1440) * 84
+
+  titleX = windowwidth / 2 + 5 * (windowWidth / 1440);
+  titleY = windowHeight * 0.2 + 5 * (windowHeight / 900);
+
   // Calculates the y-value of the ground depending on the screen height
   groundY = windowHeight - (70/1440) * windowHeight;
 
@@ -215,8 +233,8 @@ function windowResize() {
   slingshotPullY = slingshotY + -30 * slingshotScaleY / 0.15;
 
   // Scales strength to be proportional to window size
-  strengthX =  0.12;
-  strengthY =  0.12;
+  strengthX =  0.14;
+  strengthY =  0.14;
 
   // Determines how far the bird can be pulled back depending on screen size
   maxDrag = (275 / 1440) * min(windowWidth, windowHeight);
@@ -559,11 +577,11 @@ function checkCollisions() {
 
       birdX += birdVelocityX * 2;
       birdY += birdVelocityY * 2;
+      rollingBird = true;
 
       if (abs(birdVelocityY) < 1) {
         birdVelocityY = 0;
         stoppedBouncing = true;
-        rollingBird = true;
       }
 
       return;
@@ -578,11 +596,11 @@ function checkCollisions() {
 
       birdX += birdVelocityX * 2;
       birdY += birdVelocityY * 2;
+      rollingBird = true;
 
       if (abs(birdVelocityY) < 1) {
         birdVelocityY = 0;
         stoppedBouncing = true;
-        rollingBird = true;
       }
 
       return;
@@ -597,14 +615,35 @@ function checkCollisions() {
 
       birdX += birdVelocityX * 2;
       birdY += birdVelocityY * 2;
+      rollingBird = true;
 
       if (abs(birdVelocityY) < 1) {
         birdVelocityY = 0;
         stoppedBouncing = true;
-        rollingBird = true;
       }
 
       return;
     }
   }
+}
+
+function displayStartScreen() {
+  background(135, 206, 250);
+
+  noStroke();
+  fill(34, 139, 34);
+  ellipse(100, 620, 1100, 600);
+  ellipse(1000, 590, 1200, 650);
+
+  fill(139, 69, 13);
+  rect(0, windowHeight - 40, width, 40);
+  fill(50, 205, 50);
+  rect(0, height - 45, width, 5);
+
+  textAlign(CENTER, CENTER);
+  textStyle(BOLD);
+
+  fill(50, 50, 50, 150);
+  textSize(titleSize);
+  text("FRUSTRATED BIRDS", titleX, titleY);
 }
