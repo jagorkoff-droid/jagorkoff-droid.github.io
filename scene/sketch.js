@@ -9,6 +9,10 @@ let backgroundImage;
 let backgroundImageX = 0;
 let backgroundImageY = 0;
 
+let timerStart;
+let timerStopped;
+let finalTime = 0;
+
 let pointer;
 let pointerScaleX;
 let pointerScaleY;
@@ -60,21 +64,27 @@ let stoppedBouncing = true;
 let releaseTime = 0;
 
 let tallBlock;
-let tallBlockScaleX = 1;
-let tallBlockScaleY = 1;
+let tallBlockScaleX;
+let tallBlockScaleY;
 let tallBlocks;
 
 let shortBlock;
 let shortBlockScaleX;
 let shortBlockScaleY;
+let shortBlocks;
 
 let boulder;
 let boulderScaleX;
 let boulderScaleY;
+let boulders;
 
 let pig;
 let pigScaleX;
 let pigScaleY;
+let pigDisplacement;
+let pigs;
+
+let gameComplete = false;
 
 async function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -88,12 +98,16 @@ async function setup() {
   shortBlock = await loadImage("short_block.png");
   boulder = await loadImage("boulder.png");
   pig = await loadImage("pig.png");
+
+  timerStart = millis();
+  timerStopped = false;
+
+  windowResize();
 }
 
 function draw() {
-  windowResize();
-
   moveBird();
+  checkCollisions();
   quitFlight();
 
   displayBackground();
@@ -102,11 +116,25 @@ function draw() {
     displayTallBlock(tallBlocks[i].x, tallBlocks[i].y);
   }
 
+  for (let i = 0; i < shortBlocks.length; i++) {
+    displayShortBlock(shortBlocks[i].x, shortBlocks[i].y)
+  }
+
+  for (let i = 0; i < boulders.length; i++) {
+    displayBoulder(boulders[i].x, boulders[i].y)
+  }
+
+  for (let i = 0; i < pigs.length; i++) {
+    displayPig(pigs[i].x, pigs[i].y)
+  }
+
   displaySlingshotBands();
   displayBirdTrajectory();
   displayBird();
   displaySlingshot();
   displayPointer();
+
+  displayTimer();
 }
 
 function windowResize() {
@@ -116,14 +144,47 @@ function windowResize() {
   gravity = (windowHeight / 1440) * 0.5;
 
   tallBlockScaleX = 1 * (windowWidth / 1920);
-  tallBlockScaleY = 1 * (windowHeight / 1080);
+  tallBlockScaleY = 1.4 * (windowHeight / 1080);
+
+  shortBlockScaleX = 2.48 * (windowWidth / 1920);
+  shortBlockScaleY = 1.25 * (windowHeight / 1080);
 
   tallBlocks = [
-    {x: 1000 * (windowWidth / 1920), y: groundY - tallBlock.width / 2},
-    {x: 1200 * (windowWidth / 1920), y: groundY - tallBlock.width / 2},
-    {x: 1400 * (windowWidth / 1920), y: groundY - tallBlock.width / 2},
-    {x: 1600 * (windowWidth / 1920), y: groundY - tallBlock.width / 2},
-    {x: 1800 * (windowWidth / 1920), y: groundY - tallBlock.width / 2}
+    {x: 1000 * (windowWidth / 1920), y: groundY - (tallBlock.width * tallBlockScaleY / 2)},
+    {x: 1200 * (windowWidth / 1920), y: groundY - (tallBlock.width * tallBlockScaleY / 2)},
+    {x: 1400 * (windowWidth / 1920), y: groundY - (tallBlock.width * tallBlockScaleY / 2)},
+    {x: 1600 * (windowWidth / 1920), y: groundY - (tallBlock.width * tallBlockScaleY / 2)},
+    {x: 1800 * (windowWidth / 1920), y: groundY - (tallBlock.width * tallBlockScaleY / 2)},
+    {x: 1300 * (windowWidth / 1920), y: groundY - (tallBlock.width * tallBlockScaleY / 2) - (tallBlock.width * tallBlockScaleY) - (shortBlock.height * shortBlockScaleY)},
+    {x: 1500 * (windowWidth / 1920), y: groundY - (tallBlock.width * tallBlockScaleY / 2) - (tallBlock.width * tallBlockScaleY) - (shortBlock.height * shortBlockScaleY)}
+  ];
+
+  shortBlocks = [
+    {x: 1000 * (windowWidth / 1920), y: groundY - (shortBlock.height * shortBlockScaleY / 2) - (tallBlock.width * tallBlockScaleY)},
+    {x: 1200 * (windowWidth / 1920), y: groundY - (shortBlock.height * shortBlockScaleY / 2) - (tallBlock.width * tallBlockScaleY)},
+    {x: 1400 * (windowWidth / 1920), y: groundY - (shortBlock.height * shortBlockScaleY / 2) - (tallBlock.width * tallBlockScaleY)},
+    {x: 1600 * (windowWidth / 1920), y: groundY - (shortBlock.height * shortBlockScaleY / 2) - (tallBlock.width * tallBlockScaleY)},
+    {x: 1800 * (windowWidth / 1920), y: groundY - (shortBlock.height * shortBlockScaleY / 2) - (tallBlock.width * tallBlockScaleY)},
+    {x: 1400 * (windowWidth / 1920), y: groundY - (shortBlock.height * shortBlockScaleY / 2) * 3 - (tallBlock.width * tallBlockScaleY) * 2}
+  ];
+
+  boulderScaleX = 1 * (windowWidth / 1920);
+  boulderScaleY = 1 * (windowHeight / 1080);
+
+  boulders = [
+    {x: 1000 * (windowWidth / 1920), y: groundY - (boulder.height * boulderScaleY / 2) - (tallBlock.width * tallBlockScaleY) - (shortBlock.height * shortBlockScaleY)},
+    {x: 1800 * (windowWidth / 1920), y: groundY - (boulder.height * boulderScaleY / 2) - (tallBlock.width * tallBlockScaleY) - (shortBlock.height * shortBlockScaleY)}
+  ];
+
+  pigScaleX = 0.75 * (windowWidth / 1920);
+  pigScaleY = 0.75 * (windowHeight / 1080);
+  pigDisplacement = 4 * (windowHeight / 1080);
+
+  pigs = [
+    {x: 1200 * (windowWidth / 1920), y: groundY - (pig.height * pigScaleY / 2) - (tallBlock.width * tallBlockScaleY) - (shortBlock.height * shortBlockScaleY)},
+    {x: 1600 * (windowWidth / 1920), y: groundY - (pig.height * pigScaleY / 2) - (tallBlock.width * tallBlockScaleY) - (shortBlock.height * shortBlockScaleY)},
+    {x: 1400 * (windowWidth / 1920), y: groundY - (boulder.height * boulderScaleY / 2) - (shortBlock.height * shortBlockScaleY / 2) * 4 - (tallBlock.width * tallBlockScaleY) * 2},
+    {x: 900 * (windowWidth / 1920), y: groundY - (pig.height * pigScaleY) / 2}
   ];
 
   // Changes scale of the pointer to ensure it is the same proportional size on different screens
@@ -370,6 +431,7 @@ function quitFlight() {
     else {
       birdVelocityY = 0;
       stoppedBouncing = true;
+      rollingBird = true;
     }
   }
 
@@ -393,6 +455,14 @@ function quitFlight() {
     rollingBird = false;
     stoppedBouncing = true;
   }
+
+  if (!flyingBird) {
+    birdX = (260 / 2560) * windowWidth;
+    birdY = (1125 / 1440) * windowHeight;
+
+    birdCenterX = birdX + birdWidth / 2;
+    birdCenterY = birdY + birdHeight / 2;
+  }
 }
 
 function displayTallBlock(x, y) {
@@ -407,13 +477,134 @@ function displayTallBlock(x, y) {
 }
 
 function displayShortBlock(x, y) {
- 
+  push();
+
+  imageMode(CENTER);
+  translate(x, y);
+  image(shortBlock, 0, 0, shortBlock.width * shortBlockScaleX, shortBlock.height * shortBlockScaleY);
+
+  pop();
 }
 
 function displayBoulder(x, y) {
-  
+  push();
+
+  imageMode(CENTER);
+  translate(x, y);
+  image(boulder, 0, 0, boulder.width * boulderScaleX, boulder.height * boulderScaleY);
+
+  pop();
 }
 
 function displayPig(x, y) {
-  
+  push();
+
+  imageMode(CENTER);
+  translate(x, y);
+  image(pig, 0, pigDisplacement, pig.width * pigScaleX, pig.height * pigScaleY)
+
+  pop();
+}
+
+function displayTimer() {
+  let currentTime;
+
+  if (timerStopped) {
+    currentTime = finalTime;
+  }
+
+  else {
+    currentTime = millis() - timerStart;
+  }
+
+  let seconds = floor(currentTime / 1000);
+  let minutes = floor(seconds / 60);
+  seconds = seconds % 60;
+
+  let timeText = nf(minutes, 2) + ":" + nf(seconds, 2);
+
+  fill(255);
+  stroke(0);
+  strokeWeight(4);
+  textSize(40 * (windowHeight / 1440));
+  textAlign(CENTER, CENTER);
+  text(timeText, windowWidth / 2, 50 * (windowHeight / 1440))
+}
+
+function checkCollisions() {
+  if (!flyingBird) {
+    return;
+  }
+
+  // Pigs
+  for (let i = pigs.length - 1; i >= 0; i--) {
+    if(abs(birdCenterX - pigs[i].x) < (birdWidth + pig.width * pigScaleX) / 2 && abs(birdCenterY - pigs[i].y) < (birdHeight + pig.height * pigScaleY) / 2) {
+      pigs.splice(i, 1);
+
+      if (pigs.length === 0) {
+        gameComplete = true;
+        timerStopped = true;
+        finalTime = millis() - timerStart;
+      }
+
+      return;
+    }
+  }
+
+  // Tall blocks
+  for (let i = 0; i < tallBlocks.length; i++) {
+    if (abs(birdCenterX - tallBlocks[i].x) < (birdWidth + tallBlock.height * tallBlockScaleX) / 2 && abs(birdCenterY - tallBlocks[i].y) < (birdHeight + tallBlock.width * tallBlockScaleY) / 2) {
+      birdVelocityX *= -0.5;
+      birdVelocityY *= -0.5;
+
+      birdX += birdVelocityX * 2;
+      birdY += birdVelocityY * 2;
+
+      if (abs(birdVelocityY) < 1) {
+        birdVelocityY = 0;
+        stoppedBouncing = true;
+        rollingBird = true;
+      }
+
+      return;
+    }
+  }
+
+  // Short blocks
+  for (let i = 0; i < shortBlocks.length; i++) {
+    if (abs(birdCenterX - shortBlocks[i].x) < (birdWidth + shortBlock.width * shortBlockScaleX) / 2 && abs(birdCenterY - shortBlocks[i].y) < (birdHeight + shortBlock.height * shortBlockScaleY) / 2) {
+      birdVelocityX *= -0.5;
+      birdVelocityY *= -0.5;
+
+      birdX += birdVelocityX * 2;
+      birdY += birdVelocityY * 2;
+
+      if (abs(birdVelocityY) < 1) {
+        birdVelocityY = 0;
+        stoppedBouncing = true;
+        rollingBird = true;
+      }
+
+      return;
+    }
+  }
+
+  // Boulders
+  for (let i = 0; i < boulders.length; i++) {
+    if (abs(birdCenterX - boulders[i].x) < (birdWidth + boulder.width * boulderScaleX) / 2 && abs(birdCenterY - boulders[i].y) < (birdHeight + boulder.height * boulderScaleY) / 2) {
+      birdVelocityX *= -0.5;
+      birdVelocityY *= -0.5;
+
+      birdX += birdVelocityX * 2;
+      birdY += birdVelocityY * 2;
+
+      if (abs(birdVelocityY) < 1) {
+        birdVelocityY = 0;
+        stoppedBouncing = true;
+        rollingBird = true;
+      }
+
+      return;
+    }
+  }
 }
