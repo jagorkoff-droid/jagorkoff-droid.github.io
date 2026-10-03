@@ -7,6 +7,8 @@
 
 let screen = "start";
 
+let score = 0;
+
 let titleSize;
 let titleX;
 let titleY;
@@ -95,6 +97,7 @@ let pigDisplacement;
 let pigs;
 
 let gameComplete = false;
+let hasPlayed = false;
 
 async function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -115,6 +118,11 @@ async function setup() {
 }
 
 function draw() {
+if (keyIsDown(ENTER) && screen === "start") {
+  resetGame();
+  screen = "game";
+}
+
   if (screen === "start") {
     displayStartScreen();
     quitFlight();
@@ -160,7 +168,7 @@ function windowResize() {
   titleX = windowWidth / 2 + 5 * (windowWidth / 1440);
   titleY = windowHeight * 0.2 + 5 * (windowHeight / 900);
 
-  buttonTextSize = (sqrt(windowWidth**2 + windowHeight **2) / sqrt(8627200)) * 80;
+  buttonTextSize = (sqrt(windowWidth**2 + windowHeight **2) / sqrt(8627200)) * 50;
   buttonX = windowWidth / 2;
   buttonY = windowHeight / 2 + 150 * (windowHeight / 900);
 
@@ -329,8 +337,8 @@ function displayBird() {
 
 function mousePressed() {
   if (mouseX >= windowWidth / 2 - 100 * (windowWidth / 1440) && mouseY >= windowHeight / 2 + 100 * (windowHeight / 900) && mouseX <= windowWidth / 2 - 100 * (windowWidth / 1440) + 200 * (windowWidth / 1440) && mouseY <= windowHeight / 2 + 100 * (windowHeight / 900) + 100 * (windowHeight / 900) && screen === "start") {
+    resetGame();
     screen = "game";
-    timerStart = millis();
   };
 
   // Finds distance between bird centre and where the mouse has clicked
@@ -574,8 +582,10 @@ function checkCollisions() {
 
       if (pigs.length === 0) {
         gameComplete = true;
+        hasPlayed = true;
         timerStopped = true;
         finalTime = millis() - timerStart;
+        score = max(0, floor(30000 - finalTime));
         screen = "start";
       }
 
@@ -589,13 +599,20 @@ function checkCollisions() {
       birdVelocityX *= -0.5;
       birdVelocityY *= -0.5;
 
-      birdX += birdVelocityX * 2;
-      birdY += birdVelocityY * 2;
+      if (abs(birdCenterX - tallBlocks[i].x) > abs(birdCenterY - tallBlocks[i].y)) {
+        birdX += birdVelocityX * 2;
+      }
+
+      else {
+        birdY += birdVelocityY * 2;
+      }
+
       rollingBird = true;
 
       if (abs(birdVelocityY) < 1) {
         birdVelocityY = 0;
         stoppedBouncing = true;
+        rollingBird = true;
       }
 
       return;
@@ -608,13 +625,20 @@ function checkCollisions() {
       birdVelocityX *= -0.5;
       birdVelocityY *= -0.5;
 
-      birdX += birdVelocityX * 2;
-      birdY += birdVelocityY * 2;
+      if (abs(birdCenterX - shortBlocks[i].x) > abs(birdCenterY - shortBlocks[i].y)) {
+        birdX += birdVelocityX * 2;
+      }
+
+      else {
+        birdY += birdVelocityY * 2;
+      }
+
       rollingBird = true;
 
       if (abs(birdVelocityY) < 1) {
         birdVelocityY = 0;
         stoppedBouncing = true;
+        rollingBird = true;
       }
 
       return;
@@ -627,13 +651,20 @@ function checkCollisions() {
       birdVelocityX *= -0.5;
       birdVelocityY *= -0.5;
 
-      birdX += birdVelocityX * 2;
-      birdY += birdVelocityY * 2;
+      if (abs(birdCenterX - boulders[i].x) > abs(birdCenterY - boulders[i].y)) {
+        birdX += birdVelocityX * 2;
+      }
+
+      else {
+        birdY += birdVelocityY * 2;
+      }
+
       rollingBird = true;
 
       if (abs(birdVelocityY) < 1) {
         birdVelocityY = 0;
         stoppedBouncing = true;
+        rollingBird = true;
       }
 
       return;
@@ -666,5 +697,40 @@ function displayStartScreen() {
 
   fill(50, 50, 255);
   textSize(buttonTextSize);
-  text("Start", buttonX, buttonY);
+  text("Start (Click or\nPress Enter)", buttonX, buttonY);
+
+  if (hasPlayed) {
+    fill(50, 50, 50);
+    textSize(buttonTextSize * 0.5);
+    text(`Score: ${score} / 30000`, windowWidth / 2, windowHeight / 2 + 250 * (windowHeight / 900));
+  }
+}
+
+function resetGame() {
+  // Respawn pigs
+  pigs = [
+    {x: 1200 * (windowWidth / 1920), y: groundY - (pig.height * pigScaleY / 2) - (tallBlock.width * tallBlockScaleY) - (shortBlock.height * shortBlockScaleY)},
+    {x: 1600 * (windowWidth / 1920), y: groundY - (pig.height * pigScaleY / 2) - (tallBlock.width * tallBlockScaleY) - (shortBlock.height * shortBlockScaleY)},
+    {x: 1400 * (windowWidth / 1920), y: groundY - (boulder.height * boulderScaleY / 2) - (shortBlock.height * shortBlockScaleY / 2) * 4 - (tallBlock.width * tallBlockScaleY) * 2},
+    {x: 900 * (windowWidth / 1920), y: groundY - (pig.height * pigScaleY) / 2}
+  ];
+
+  // Respawn bird
+  birdX = (260 / 2560) * windowWidth;
+  birdY = (1125 / 1440) * windowHeight;
+
+  birdCenterX = birdX + birdWidth / 2;
+  birdCenterY = birdY + birdHeight / 2;
+
+  // Reset game variables
+  draggingBird = false;
+  flyingBird = false;
+  rollingBird = false;
+  stoppedBouncing = true;
+
+  gameComplete = false;
+  timerStopped = false;
+  finalTime = 0;
+  score = 0;
+  timerStart = millis();
 }
