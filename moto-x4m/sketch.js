@@ -12,8 +12,12 @@ let nextX = 0;
 
 let speed;
 
+let bikeX;
+
 async function setup() {
   createCanvas(windowWidth, windowHeight);
+
+  bike = await loadImage("bike.png");
 
   speed = width * 0.005;
 
@@ -21,11 +25,14 @@ async function setup() {
 }
 
 function draw() {
+  setVariables();
   background("skyblue");
 
   moveCamera();
   checkTerrain();
   displayTerrain();
+
+  displayBike();
 }
 
 function moveCamera() {
@@ -86,14 +93,22 @@ function displayChunk(chunk) {
   rect(chunk.x, chunk.y, chunk.w, chunk.h);
 }
 
+function displayBike() {
+  image(bike, bikeX, terrain[terrain.length - 1].y, bike.width, bike.height);
+}
+
+function setVariables() {
+  speed = width * 0.005;
+  
+  bikeX = 450 * (width / 1920);
+}
+
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
 
   terrain = [];
   cameraX = 0;
   nextX = 0;
-
-  speed = width * 0.005;
 
   generateTerrain();
 }
