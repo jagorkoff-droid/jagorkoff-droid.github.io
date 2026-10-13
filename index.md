@@ -12,5 +12,5 @@
 
 ## Projects
 - [Interactive Scene](scene)
-- [Moto X4M](moto-x4m)
+- [Arrays and Object Notation](moto-x4m)
 - [Capstone Coding Project](capstone)
