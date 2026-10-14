@@ -94,7 +94,13 @@ function displayChunk(chunk) {
 }
 
 function displayBike() {
-  image(bike, bikeX, terrain[terrain.length - 1].y, bike.width, bike.height);
+  let bikeTerrainX = bikeX + cameraX;
+  let chunkSpacing = width * 0.0005;
+  let chunkIndex = floor(bikeTerrainX / chunkSpacing);
+
+  let groundY = terrain[chunkIndex].y;
+
+  image(bike, bikeX, groundY - bike.height, bike.width, bike.height);
 }
 
 function setVariables() {
