@@ -53,7 +53,7 @@ function generateTerrain() {
 function generateChunk(chunkSpacing) {
   let xPosition = nextX;
 
-  let chunkHeight = noise(xPosition * (0.003 * 1000 / width)) * (height * 0.45);
+  let chunkHeight = noise(xPosition * (0.0015 * 1000 / width)) * (height * 0.5);
 
   let chunkPoint = {
     x: xPosition,
@@ -94,13 +94,7 @@ function displayChunk(chunk) {
 }
 
 function displayBike() {
-  let bikeTerrainX = bikeX + cameraX;
-  let chunkSpacing = width * 0.0005;
-  let chunkIndex = floor(bikeTerrainX / chunkSpacing);
-
-  let groundY = terrain[chunkIndex].y;
-
-  image(bike, bikeX, groundY - bike.height, bike.width, bike.height);
+  image(bike, bikeX, terrain[terrain.length - 1].y, bike.width, bike.height);
 }
 
 function setVariables() {
