@@ -1,15 +1,15 @@
 # Computer Science 30 Stuff
 
 ## Demos
-- [Chessboard Demo](chessboard)
+- [Chessboard](chessboard)
 - [Cirle Generator](circles)
 - [Square Around Screen Edge](square-edge)
-- [Millis Demo](millis)
+- [Millis](millis)
 - [Traffic Light](traffic-light)
 - [Bouncing Circles](circle-bounce)
 - [Perlin Noise](perlin-noise)
 - [Terrain Generation](terrain-generation)
-- [Collision Library Demo](collision)
+- [Collision Library](collision)
 - [Randomized Art](randomized-art)
 
 ## Projects
