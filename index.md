@@ -10,6 +10,7 @@
 - [Perlin Noise](perlin-noise)
 - [Terrain Generation](terrain-generation)
 - [Collision Library Demo](collision)
+- [Randomized Art](randomized-art)
 
 ## Projects
 - [Interactive Scene](scene)
