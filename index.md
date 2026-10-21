@@ -2,7 +2,7 @@
 
 ## Demos
 - [Chessboard](chessboard)
-- [Cirle Generator](circles)
+- [Circle Generator](circles)
 - [Square Around Screen Edge](square-edge)
 - [Millis](millis)
 - [Traffic Light](traffic-light)
