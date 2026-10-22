@@ -31,7 +31,7 @@ let bike = {
 
 let gravity = 0.25;
 let acceleration = 0.075;
-let maxSpeed = 60;
+let maxSpeed = 30;
 let airRotation = 0.013;
 
 async function setup() {
@@ -283,13 +283,13 @@ function updateBikeRotation() {
     bike.angularVelocity += airRotation * bike.velocityX * 0.01;
 
     if (keyIsDown("A") || keyIsDown("a")) {
-      bike.angularVelocity -= 0.014;
+      bike.angularVelocity -= 0.02;
     }
     if (keyIsDown("D") || keyIsDown("d")) {
-      bike.angularVelocity += 0.014;
+      bike.angularVelocity += 0.02;
     }
 
-    bike.angularVelocity = constrain(bike.angularVelocity, -0.25, 0.25);
+    bike.angularVelocity = constrain(bike.angularVelocity, -0.35, 0.35);
 
     bike.angle += bike.angularVelocity;
     bike.angularVelocity *= 0.8;
