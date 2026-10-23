@@ -31,8 +31,8 @@ let bike = {
 
 let gravity = 0.25;
 let acceleration = 0.075;
-let maxSpeed = 30;
-let airRotation = 0.013;
+let maxSpeed = 15;
+let airRotation = 0.03;
 
 async function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -147,6 +147,9 @@ function windowResized() {
 
 function updateBike() {
   moveBike();
+
+bike.velocityX = constrain(bike.velocityX, 0, maxSpeed);
+
   applyGravity();
   checkBikeCollision();
   updateBikeRotation();
@@ -280,7 +283,7 @@ function updateBikeRotation() {
     bike.angularVelocity *= 0.92;
   }
   else {
-    bike.angularVelocity += airRotation * bike.velocityX * 0.01;
+    bike.angularVelocity += airRotation * bike.velocityX * 0.025;
 
     if (keyIsDown("A") || keyIsDown("a")) {
       bike.angularVelocity -= 0.02;
