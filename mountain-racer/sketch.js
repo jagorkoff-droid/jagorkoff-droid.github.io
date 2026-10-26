@@ -13,7 +13,7 @@ let nextX = 0;
 let crashed = false;
 let crashTimer = 0;
 let crashDelay = 0;
-let crashDelayLength = 3;
+let crashDelayLength = 5;
 let explosionParticles = [];
 
 let speed;
@@ -34,8 +34,27 @@ let acceleration = 0.075;
 let maxSpeed = 15;
 let airRotation = 0.03;
 
+let bottle;
+let bottles = [];
+
+let thirst = 100;
+let dehydrationStep = 0.05
+let lastBottleChance = 0;
+let drinkSound;
+
+let deathSound;
+
+let backgroundMusic;
+
 async function setup() {
   createCanvas(windowWidth, windowHeight);
+
+  bottle = await loadImage("bottle.png");
+
+  drinkSound = await loadSound("drink.mp3");
+  deathSound = await loadSound("death.mp3");
+
+  backgroundMusic = await loadSound("background.mp3");
 
   generateTerrain();
 }
@@ -45,11 +64,16 @@ function draw() {
   background("skyblue");
 
   handleCrash();
+  updateThirst();
+  collectBottles();
+  forceBottleIfThirsty();
   moveCamera();
   checkTerrain();
+  displayBottles();
   displayTerrain();
   displayBike();
   displayExplosion();
+  displayThirst();
 }
 
 function moveCamera() {
@@ -58,6 +82,8 @@ function moveCamera() {
 }
 
 function generateTerrain() {
+  bottles = [];
+
   let chunkSpacing = max(2, width * 0.0005);
   let numberOfChunks = ceil(width / chunkSpacing);
 
@@ -93,6 +119,15 @@ function generateChunk(chunkSpacing) {
   };
 
   terrain.push(chunkPoint);
+
+  if (xPosition > width && random(0, 5000) < 1) {
+    bottles.push(
+      {
+        x: xPosition,
+        y: chunkPoint.y - 22
+      }
+    );
+  }
 
   nextX += chunkSpacing;
 }
@@ -157,13 +192,13 @@ bike.velocityX = constrain(bike.velocityX, 0, maxSpeed);
 
 function moveBike() {
   if (keyIsDown("W") || keyIsDown("w")) {
-    bike.velocityX += acceleration;
+    bike.velocityX += acceleration * (thirst / 100);
   }
   else {
     bike.velocityX *= 0.99;
   }
 
-  bike.velocityX = constrain(bike.velocityX, 0, maxSpeed);
+  bike.velocityX = constrain(bike.velocityX, 0, maxSpeed * (0.3 + 0.7 * thirst / 100));
 
   bike.x += bike.velocityX;
 }
@@ -271,6 +306,12 @@ function displayRider() {
 }
 
 function updateBikeRotation() {
+  if (thirst <= 1) {
+    bike.angularVelocity += 0.02;
+    bike.angle += bike.angularVelocity;
+    return;
+  }
+
   if (bike.onGround) {
     let rearY = getTerrainHeight(bike.x - 28);
     let frontY = getTerrainHeight(bike.x + 28);
@@ -362,6 +403,7 @@ function explodeBike() {
   crashed = true;
   crashTimer = 60;
   explosionParticles = [];
+  deathSound.play();
 
   for (let i = 0; i < 50; i++) {
     explosionParticles.push({
@@ -418,5 +460,76 @@ function resetGame() {
   crashDelay = 0;
   crashTimer = 0;
 
+  thirst = 100;
+
   generateTerrain();
+}
+
+function displayBottles() {
+  for (let bottleItem of bottles) {
+    image(bottle, bottleItem.x - cameraX - 15, bottleItem.y - 40, 45, 60);
+  }
+}
+
+function updateThirst() {
+  if (!crashed) {
+    thirst -= dehydrationStep;
+    thirst = max(0, thirst);
+  }
+}
+
+function displayThirst() {
+  let barWidth = 400;
+  let barHeight = 40;
+  let x = 20;
+  let y = 20;
+
+  noStroke();
+  fill("darkred");
+  rect(x, y, barWidth, barHeight, 5);
+
+  if (thirst > 50) {
+    fill("deepskyblue");
+  }
+  else if (thirst > 25) {
+    fill("orange");
+  }
+  else {
+    fill("red");
+  }
+
+  rect(x, y, barWidth * (thirst / 100), barHeight, 5)
+
+  fill("black");
+  textSize(30);
+  text("Water", x, y + barHeight + 30);
+}
+
+function collectBottles() {
+  for (let i = bottles.length - 1; i >= 0; i--) {
+    let bottleItem = bottles[i];
+
+    let distanceToBottle = dist(bike.x, bike.y, bottleItem.x, bottleItem.y);
+
+    if (distanceToBottle < 40) {
+      thirst = min(100, thirst + 15);
+      drinkSound.play();
+      bottles.splice(i, 1);
+    }
+  }
+}
+
+function forceBottleIfThirsty() {
+  if (thirst < 25 && bottles.length === 0) {
+    if (random(10) < 1) {
+      let bottleX = bike.x + random(300, 500);
+
+      bottles.push(
+        {
+          x: bottleX,
+          y: getTerrainHeight(bottleX) - 22,
+      }
+    )
+    }
+  }
 }
