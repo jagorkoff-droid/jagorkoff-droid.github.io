@@ -47,3 +47,19 @@ function randomizeGrid(cols, rows) {
 
   return newGrid;
 }
+
+function mousePressed() {
+  let x = floor(width / GRID_SIZE);
+  let y = floor(height / GRID_SIZE);
+
+  toggleCell(x, y);
+}
+
+function toggleCell(x, y) {
+  if (grid[y][x] === 0) {
+    grid[y][x] = 1;
+  }
+  else if (grid[y][x] === 1) {
+    grid[y][x] = 0;
+  }
+}
