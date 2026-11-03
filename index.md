@@ -13,6 +13,7 @@
 - [Randomized Art](randomized-art)
 - [Images and Sound Effects](loading-assets)
 - [2D Grid](grid)
+- [Game of Life](life-game)
 
 ## Projects
 - [Interactive Scene](scene)
