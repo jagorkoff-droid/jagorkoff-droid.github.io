@@ -1,14 +1,16 @@
 // Conway's Game of Life Demo
 
-const CELL_SIZE = 20;
+const CELL_SIZE = 15;
 const RENDER_ON_MULTIPLES_OF = 5;
 let rows;
 let cols;
 let grid;
 let autoPlayIsOn = false;
+let gosper;
 
 async function setup() {
   createCanvas(windowWidth, windowHeight);
+  gosper = await loadJSON("gosper.json");
   rows = Math.floor(height/CELL_SIZE);
   cols = Math.floor(width/CELL_SIZE);
   grid = generateRandomGrid(cols, rows);
@@ -19,6 +21,7 @@ function draw() {
   if (autoPlayIsOn && frameCount % RENDER_ON_MULTIPLES_OF === 0) {
     grid = updateGrid();
   }
+
   displayGrid();
 }
 
@@ -34,9 +37,9 @@ function updateGrid() {
       // Look at every neighbour
       for (let i = -1; i <= 1; i++) {
         for (let j = -1; j <= 1; j++) {
-          //don't fall off the edge
-          if (x+j >= 0 && x+j < cols && y+i >= 0 && y+i < rows) {
-            neighbours += grid[y+i][x+j];
+          // Don't fall off the edge
+          if (x + j >= 0 && x + j < cols && y + i >= 0 && y + i < rows) {
+            neighbours += grid[y + i][x + j];
           }
         }
       }
@@ -45,7 +48,7 @@ function updateGrid() {
       neighbours -= grid[y][x];
 
       // Apply the rules
-      if (grid[y][x] === 0) {  //currently dead
+      if (grid[y][x] === 0) {  // Currently dead
         if (neighbours === 3) {
           nextTurn[y][x] = 1;
         }
@@ -54,7 +57,7 @@ function updateGrid() {
         }
       }
 
-      if (grid[y][x] === 1) {  //currently alive
+      if (grid[y][x] === 1) {  // Currently alive
         if (neighbours === 2 || neighbours === 3) {
           nextTurn[y][x] = 1;
         }
@@ -80,6 +83,9 @@ function keyPressed() {
   }
   else if (key === 'a') {
     autoPlayIsOn = !autoPlayIsOn;
+  }
+  else if (key === "g") {
+    grid = gosper;
   }
 }
 
