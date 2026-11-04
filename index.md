@@ -18,4 +18,5 @@
 ## Projects
 - [Interactive Scene](scene)
 - [Arrays and Object Notation](mountain-racer)
+- [Grid-Based Game](battleship)
 - [Capstone Coding Project](capstone)
