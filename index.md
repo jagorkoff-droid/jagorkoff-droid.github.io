@@ -14,6 +14,7 @@
 - [Images and Sound Effects](loading-assets)
 - [2D Grid](grid)
 - [Game of Life](life-game)
+- [Character in Grid](grid-character)
 
 ## Projects
 - [Interactive Scene](scene)
