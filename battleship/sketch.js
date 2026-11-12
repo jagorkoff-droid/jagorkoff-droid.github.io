@@ -321,19 +321,19 @@ function displayShipBar() {
   fill(255);
   textSize(subtitleTextSize);
   textStyle(BOLD);
-  text("Your Fleet", barX, barY - 300 * gameScale);
+  text("Fleet Dock", barX, barY - 300 * gameScale);
 
+  displayShips(barX, barY, shipSpacing);
+}
+
+function displayShips(barX, barY, shipSpacing) {
   for (let i = 0; i < ships.length; i++) {
     let shipY = barY - 150 * gameScale + i * shipSpacing;
 
     fill(65, 70, 75);
 
-    rect(barX, shipY, ships[i].length * cellSize * gameScale, cellSize, 5 * cellSize);
+    rect(barX, shipY, ships[i].length * cellSize, cellSize, 2 * cellSize);
   }
-}
-
-function displayShips() {
-
 }
 
 function displayDeployFleetButton() {
