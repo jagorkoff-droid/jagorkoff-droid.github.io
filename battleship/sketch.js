@@ -126,7 +126,7 @@ function displayBackground() {
 }
 
 function displayStartScreen() {
-  displayBackground()
+  displayBackground();
 
   fill(255);
   textSize(titleTextSize);
@@ -158,7 +158,7 @@ function displayMenuButton(y, buttonText) {
     fill(20, 100, 150);
   }
 
-  rect(x, y, w, h, 15 * gameScale)
+  rect(x, y, w, h, 15 * gameScale);
 
   fill(255);
   textSize(subtitleTextSize);
@@ -168,7 +168,7 @@ function displayMenuButton(y, buttonText) {
 }
 
 function displayWaitingScreen(title) {
-  displayBackground()
+  displayBackground();
 
   fill(255);
   textStyle(BOLD);
@@ -181,24 +181,24 @@ function displayWaitingScreen(title) {
   fill(200);
 
   if (gameState === "create") {
-    text("Share this code with your opponent!", width / 2, height * 0.375)
+    text("Share this code with your opponent!", width / 2, height * 0.375);
 
     textSize(titleTextSize * 0.6);
     fill(255, 220, 80);
-    text(roomCode, width / 2, height * 0.55)
+    text(roomCode, width / 2, height * 0.55);
   }
   else {
-    text("Enter your opponents room code:", width / 2, height * 0.375)
+    text("Enter your opponents room code:", width / 2, height * 0.375);
 
     fill(255);
-    rect(width / 2, height * 0.55, 500 * gameScale, 75 * gameScale, 15 * gameScale)
+    rect(width / 2, height * 0.55, 500 * gameScale, 75 * gameScale, 15 * gameScale);
 
     fill(180);
     textSize(subtitleTextSize);
     text(joinCodeInput || "Enter 6-digit code", width / 2, height * 0.55);
 
     if (!game.guestConnecting) {
-      displayMenuButton(height * 0.7, "Join Game")
+      displayMenuButton(height * 0.7, "Join Game");
     }
   }
 
@@ -206,13 +206,13 @@ function displayWaitingScreen(title) {
     textStyle(NORMAL);
     fill(255, 220, 80);
     textSize(subtitleTextSize);
-    text("Connecting to server...", width / 2, height * 0.625)
+    text("Connecting to server...", width / 2, height * 0.625);
   }
   else if (connected) {
     textStyle(NORMAL);
     fill(100, 255, 130);
     textSize(subtitleTextSize);
-    text("Connected!", width / 2, height * 0.625)
+    text("Connected!", width / 2, height * 0.625);
   }
 
   if (!game.guestConnecting) {
@@ -221,7 +221,7 @@ function displayWaitingScreen(title) {
 }
 
 function displayUsernameScreen() {
-  displayBackground()
+  displayBackground();
 
   fill(255);
   textSize(titleTextSize * 0.75);
@@ -235,7 +235,7 @@ function displayUsernameScreen() {
   fill(180);
   textSize(subtitleTextSize);
   // If usernameInput has no value, use alternate text
-  text(usernameInput || "Start typing your username...", width / 2, height * 0.55)
+  text(usernameInput || "Start typing your username...", width / 2, height * 0.55);
 
   displayMenuButton(height * 0.7, "Continue");
   displayMenuButton(height * 0.85, "Back");
@@ -361,7 +361,7 @@ function mousePressed() {
   else if (gameState === "username") {
     if (mouseX > width / 2 - 175 * gameScale && mouseX < width / 2 + 175 * gameScale && mouseY > height * 0.7 - 40 * gameScale && mouseY < height * 0.7 + 40 * gameScale) {
       if (usernameInput.trim().length > 0) {
-        username = usernameInput.trim()
+        username = usernameInput.trim();
         
         if (previousGameState === "create") {
           roomCode = nf(floor(random(1000000)), 6);
@@ -391,25 +391,25 @@ function mousePressed() {
   else if (gameState === "create" || gameState === "join") {
     if (!game.guestConnecting) {
       if (mouseX > width / 2 - 175 * gameScale && mouseX < width / 2 + 175 * gameScale && mouseY > height * 0.7 - 40 * gameScale && mouseY < height * 0.7 + 40 * gameScale) {
-      if (joinCodeInput.length === 6) {
-        roomCode = joinCodeInput;
+        if (joinCodeInput.length === 6) {
+          roomCode = joinCodeInput;
 
-        connectToGame();
+          connectToGame();
+        }
       }
-    }
 
-    else if (mouseX > width / 2 - 175 * gameScale && mouseX < width / 2 + 175 * gameScale && mouseY > height * 0.85 - 40 * gameScale && mouseY < height * 0.85 + 40 * gameScale) {
-      disconnectFromGame();
+      else if (mouseX > width / 2 - 175 * gameScale && mouseX < width / 2 + 175 * gameScale && mouseY > height * 0.85 - 40 * gameScale && mouseY < height * 0.85 + 40 * gameScale) {
+        disconnectFromGame();
 
-      gameState = "menu";
-    }
+        gameState = "menu";
+      }
     }
   }
 }
 
 async function connectToGame() {
   if (connecting || connected) {
-    return
+    return;
   }
 
   connecting = true;
@@ -510,7 +510,7 @@ function reloadP5PartyJS() {
     newScript.onerror = () => (reloadPage = true);
     // Actually injects the new script into the <head> section of the live webpage, so the browser actually sees it, recognizes that the file has not been ran before (with its current name), and runs it
     document.head.appendChild(newScript);
-  })
+  });
 }
 
 function checkPageReload() {
@@ -538,7 +538,7 @@ function displayPlayingScreen() {
   textSize(subtitleTextSize * 0.65);
 
   text("Player 1: " + (game.player1Username), 25 * gameScale, 80 * gameScale);
-  text("Player 2: " + (game.player2Username), 25 * gameScale, 125 * gameScale)
+  text("Player 2: " + (game.player2Username), 25 * gameScale, 125 * gameScale);
 
   pop();
 }
