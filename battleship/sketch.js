@@ -5,6 +5,8 @@
 // Extra for Experts:
 // - describe what you did to take this project "above and beyond"
 
+let reloadPage = false;
+
 const SQUARE_COUNT = 12;
 
 let cellSize;
@@ -36,7 +38,19 @@ let myPlayerNumber = -1;
 
 let connected = false;
 let connecting = false;
-let connectedTime = 0;
+let bothPlayersConnectedTime = 0;
+
+let ships = [
+  {length: 5, placed: false, x: -1, y: -1, horizontal: true},
+  {length: 4, placed: false, x: -1, y: -1, horizontal: true},
+  {length: 3, placed: false, x: -1, y: -1, horizontal: true},
+  {length: 3, placed: false, x: -1, y: -1, horizontal: true},
+  {length: 2, placed: false, x: -1, y: -1, horizontal: true},
+];
+
+let selectedShip = -1;
+let draggingShip = false;
+let fleetDeployed = false;
 
 async function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -65,14 +79,21 @@ async function setup() {
 }
 
 function draw() {
+  checkPageReload();
   background(220);
 
   displayGameScreens();
 }
 
 function displayGameScreens() {
-  if (connected && game.player1Username && game.player2Username && millis() - connectedTime >= 1500) {
-    gameState = "playing";
+  if (connected && game.player1Username && game.player2Username) {
+    if (bothPlayersConnectedTime === 0) {
+      bothPlayersConnectedTime = millis();
+    }
+
+    if (millis() - bothPlayersConnectedTime >= 1500) {
+      gameState = "playing";
+    }
   }
 
   if (gameState === "menu") {
@@ -176,21 +197,27 @@ function displayWaitingScreen(title) {
     textSize(subtitleTextSize);
     text(joinCodeInput || "Enter 6-digit code", width / 2, height * 0.55);
 
-    displayMenuButton(height * 0.7, "Join Game")
+    if (!game.guestConnecting) {
+      displayMenuButton(height * 0.7, "Join Game")
+    }
   }
 
   if (connecting) {
+    textStyle(NORMAL);
     fill(255, 220, 80);
     textSize(subtitleTextSize);
     text("Connecting to server...", width / 2, height * 0.625)
   }
   else if (connected) {
+    textStyle(NORMAL);
     fill(100, 255, 130);
     textSize(subtitleTextSize);
     text("Connected!", width / 2, height * 0.625)
   }
 
-  displayMenuButton(height * 0.85, "Back");
+  if (!game.guestConnecting) {
+    displayMenuButton(height * 0.85, "Back");
+  }
 }
 
 function displayUsernameScreen() {
@@ -272,7 +299,37 @@ function generateBlankGrid(SQUARE_COUNT) {
 }
 
 function displayShipBar() {
+  let gridLeft = (width - cellSize * SQUARE_COUNT) / 2;
 
+  let barX = gridLeft / 2;
+  let barY = height / 2;
+
+  let shipSpacing = 150 * gameScale;
+
+  let panelWidth = gridLeft * 0.85;
+  let panelHeight = 950 * gameScale;
+
+  let panelTop = barY - 300 * gameScale - subtitleTextSize / 2;
+  let panelBottom = barY - 150 * gameScale + 4 * shipSpacing + cellSize / 2;
+
+  let panelY = (panelTop + panelBottom) / 2;
+
+  fill(5, 15, 35);
+  rectMode(CENTER);
+  rect(barX, panelY, panelWidth, panelHeight, 15 * gameScale);
+
+  fill(255);
+  textSize(subtitleTextSize);
+  textStyle(BOLD);
+  text("Your Fleet", barX, barY - 300 * gameScale);
+
+  for (let i = 0; i < ships.length; i++) {
+    let shipY = barY - 150 * gameScale + i * shipSpacing;
+
+    fill(65, 70, 75);
+
+    rect(barX, shipY, ships[i].length * cellSize * gameScale, cellSize, 5 * cellSize);
+  }
 }
 
 function displayShips() {
@@ -332,16 +389,20 @@ function mousePressed() {
   }
 
   else if (gameState === "create" || gameState === "join") {
-    if (mouseX > width / 2 - 175 * gameScale && mouseX < width / 2 + 175 * gameScale && mouseY > height * 0.7 - 40 * gameScale && mouseY < height * 0.7 + 40 * gameScale) {
+    if (!game.guestConnecting) {
+      if (mouseX > width / 2 - 175 * gameScale && mouseX < width / 2 + 175 * gameScale && mouseY > height * 0.7 - 40 * gameScale && mouseY < height * 0.7 + 40 * gameScale) {
       if (joinCodeInput.length === 6) {
         roomCode = joinCodeInput;
+
         connectToGame();
       }
     }
 
     else if (mouseX > width / 2 - 175 * gameScale && mouseX < width / 2 + 175 * gameScale && mouseY > height * 0.85 - 40 * gameScale && mouseY < height * 0.85 + 40 * gameScale) {
       disconnectFromGame();
+
       gameState = "menu";
+    }
     }
   }
 }
@@ -353,15 +414,20 @@ async function connectToGame() {
 
   connecting = true;
 
-  await p5party.connect("wss://demoserver.p5party.org", "battleship", roomCode);
+  await p5party.connect("wss://demoserver.p5party.org", "battleship-cs30-wmci-jg-iL8RT%b7a3GOE8zk2@qOcYyhdlkIt4Ns7*2eVGmbVTkKCzigPUkV840hg6KNpklEe3^^+i8t354P%su@IGD%$vtSEvLJjb!sj@", roomCode);
 
   console.log("Connected to room: ", roomCode);
 
   game = await p5party.loadShared("game", {
     player1Username: "",
     player2Username: "",
+    guestConnecting: false,
     gameStarted: false,
   });
+
+  if (!p5party.isHost()) {
+    game.guestConnecting = true;
+  }
 
   myPlayerData = await p5party.loadMyShared({
     playerNumber: -1,
@@ -375,39 +441,27 @@ async function connectToGame() {
     game.player1Username = username;
   }
   else {
-    if (username !== game.player1Username) {
-      myPlayerNumber = 2;
-      game.player2Username = username;
+    myPlayerNumber = 2;
+    if (username === game.player1Username) {
+      if (game.player1Username !== "") {
+        game.player1Username = username + " (Host)";
+      }
+      game.player2Username = username + " (Guest)";
     }
     else {
-      p5party.disconnect();
-
-      connected = false;
-      connecting = false;
-      myPlayerNumber = -1;
-
-      game = {};
-      myPlayerData = undefined;
-      otherPlayerData = undefined;
-
-      usernameInput = ""
-      gameState = "username"
-
-      return;
+      game.player2Username = username;
     }
   }
 
   connected = true;
   connecting = false;
 
-  connectedTime = millis();
-
   console.log("Game date: ", game);
   console.log("My player data: ", myPlayerData);
   console.log("Other Player: ", otherPlayerData);
 }
 
-function disconnectFromGame() {
+async function disconnectFromGame() {
   if (connected || connecting) {
     p5party.disconnect();
   }
@@ -418,17 +472,57 @@ function disconnectFromGame() {
   game = {};
   myPlayerData = undefined;
   otherPlayerData = undefined;
+  bothPlayersConnectedTime = 0;
 
   myPlayerNumber = -1;
 
   roomCode = "";
   joinCodeInput = "";
 
+  // Completely destroys any old p5.party global objects (because p5.party is dumb and does not have a built in function to fully reconnect from square one 😞)
+  let p5GlobalNames = ["p5party", "partyConnect", "partyLoadShared", "partyWatchShared", "partyIsHost", "partyDisconnect", "partyLoadMyShared", "partyLoadGuestShareds", "partySubscribe", "partyUnsubscribe", "partyEmit", "partyToggleInfo"];
+
+  for (let name of p5GlobalNames) {
+    delete window[name];
+  }
+
+  // Again, because p5.party is dumb, we need to re-inject p5.party.js, so that it exists again for the next game
+  await reloadP5PartyJS();
+
   console.log("Disconnected from game");
+}
+
+function reloadP5PartyJS() {
+  // Creates a waiting ticket that pauses await in disconnectFromGame() until we finish reloading p5.party.js
+  return new Promise((resolve) => {
+    // Searches the HTML document for tags called <script> whose source attribute is "p5.party"
+    const oldScripts = document.querySelectorAll("script[src*='p5.party']");
+    // Loops through any tags found and deletes them from the webpage
+    oldScripts.forEach((script) => script.remove());
+
+    // Creates a new empty <script> HTML element in the browser memory
+    const newScript = document.createElement("script");
+    // Sets the source file path to the p5.party.js library, and ads the current time to it in milliseconds, as browsers only run scripts that have not been ran already, and adding the date guarantees that file has never been ran before
+    newScript.src = "libraries/p5.party.js?" + Date.now();
+    // Sets up a listener that runs the exact moment the browser finishes downloading then executing p5.party.js (the new blank one), resolve tells await (called from disconnectFromGame()) that window.p5party is ready to be used again
+    newScript.onload = () => resolve();
+    // Reloads the page if an error occurs, since this will ensure that p5.party.js is reloaded, it just might cause more hassle for the user
+    newScript.onerror = () => (reloadPage = true);
+    // Actually injects the new script into the <head> section of the live webpage, so the browser actually sees it, recognizes that the file has not been ran before (with its current name), and runs it
+    document.head.appendChild(newScript);
+  })
+}
+
+function checkPageReload() {
+  if (reloadPage === true) {
+    // Refreshes entire webpage, window.location is the current webpage URL, and .reload() forces the browser to reload said URL
+    window.location.reload();
+  }
 }
 
 function displayPlayingScreen() {
   displayGrid();
+  displayShipBar();
 
   push();
 
