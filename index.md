@@ -15,6 +15,8 @@
 - [2D Grid](grid)
 - [Game of Life](life-game)
 - [Character in Grid](grid-character)
+- [Set Timeout](set-timeout)
+- [Set Interval](set-interval)
 
 ## Projects
 - [Interactive Scene](scene)

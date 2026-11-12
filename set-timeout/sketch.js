@@ -1,0 +1,25 @@
+// Set Timeout Demo
+// window.setTimeout example
+// Make something happen after a set amount of time
+
+let message = "Coming soon...";
+
+async function setup() {
+  createCanvas(windowWidth, windowHeight);
+
+  textAlign(CENTER, CENTER);
+  textSize(50);
+
+  // Run the new message function after 3 seconds
+  window.setTimeout(newMessage, 3000);
+}
+
+function draw() {
+  background(220);
+
+  text(message, width / 2, height / 2);
+}
+
+function newMessage() {
+  message = "It's here!";
+}
