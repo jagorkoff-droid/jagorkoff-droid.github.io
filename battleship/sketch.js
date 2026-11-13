@@ -52,6 +52,17 @@ let selectedShip = -1;
 let draggingShip = false;
 let fleetDeployed = false;
 
+let dragOffsetX = 0;
+let dragOffsetY = 0;
+
+let dragStartX = -1;
+let dragStartY = -1;
+let dragStartPlaced = false;
+let dragStartHorizontal = true;
+
+let previewX = -1;
+let previewY = -1;
+
 async function setup() {
   createCanvas(windowWidth, windowHeight);
   noStroke();
@@ -256,10 +267,25 @@ function keyTyped() {
 }
 
 function keyPressed() {
-  if (gameState === "username" && usernameInputActive) {
-    if (key === BACKSPACE) {
-      usernameInput = usernameInput.slice(0, -1);
+  if (gameState === "playing" && draggingShip && (key === "r" || key === "R")) {
+    // Adjust the cells in a way such that the grabbed cell stays beneath the mouse
+    if (ships[selectedShip].horizontal) {
+      dragOffsetY = dragOffsetX;
+      dragOffsetX = 0;
     }
+    else {
+      dragOffsetX = dragOffsetY;
+      dragOffsetY = 0;
+    }
+
+    ships[selectedShip].horizontal = !ships[selectedShip].horizontal;
+
+    previewX = getGridX() - dragOffsetX;
+    previewY = getGridY() - dragOffsetY;
+  }
+
+  if (gameState === "username" && usernameInputActive && key === BACKSPACE) {
+    usernameInput = usernameInput.slice(0, -1);
   }
 
   if (gameState === "join" && key === BACKSPACE) {
@@ -283,6 +309,53 @@ function displayGrid() {
   }
 
   pop();
+}
+
+function displayPlacedAndDraggedShips() {
+  for (let i = 0; i < ships.length; i++) {
+    let ship = ships[i];
+
+    // Skips any ships that have not been placed, unless they are currently being draged
+    if (!ship.placed && !(draggingShip && selectedShip === i)) {
+      continue;
+    }
+
+    // Uses the preview coordinates for a ship currently being dragged
+    let shipX = (draggingShip && selectedShip === i) ? previewX : ship.x;
+    let shipY = (draggingShip && selectedShip === i) ? previewY : ship.y;
+
+    let shipWidth = ship.horizontal ? ship.length : 1;
+    let shipHeight = ship.horizontal ? 1 : ship.length;
+
+    let centreX = gridStartPointX + (shipX + (shipWidth - 1) / 2) * cellSize;
+    let centreY = gridStartPointY + (shipY + (shipHeight - 1) / 2) * cellSize;
+
+    let shipWidthPixels = ship.length * cellSize;
+    let shipHeightPixels = cellSize;
+
+    push();
+
+    translate(centreX, centreY);
+
+    // Rotates vertical ships
+    if (!ship.horizontal) {
+      rotate(PI / 2);
+    }
+
+    // Hull
+    fill(55, 62, 68);
+    rect(0, 0, shipWidthPixels, shipHeightPixels, 15 * gameScale);
+
+    // Deck
+    fill(90, 105, 110);
+    rect(0, 0, shipWidthPixels - (shipHeightPixels - shipHeightPixels * 0.6), shipHeightPixels * 0.6, 15 * gameScale);
+
+    // Bridge
+    fill(135, 140, 145);
+    rect(0, 0, shipWidthPixels * 0.2, shipHeightPixels * 0.4, 3 * gameScale);
+
+    pop();
+  }
 }
 
 function generateBlankGrid(SQUARE_COUNT) {
@@ -328,23 +401,49 @@ function displayShipBar() {
 
 function displayShips(barX, barY, shipSpacing) {
   for (let i = 0; i < ships.length; i++) {
+    if (ships[i].placed || (draggingShip && selectedShip === i)) {
+      continue;
+    }
+
     let shipY = barY - 150 * gameScale + i * shipSpacing;
 
-    fill(65, 70, 75);
+    let shipWidth = ships[i].length * cellSize;
+    let shipHeight = cellSize;
 
-    rect(barX, shipY, ships[i].length * cellSize, cellSize, 2 * cellSize);
+    // Hull
+    fill(55, 62, 68);
+    rect(barX, shipY, shipWidth, shipHeight, 15 * gameScale);
+
+    // Deck
+    fill(90, 105, 110);
+    rect(barX, shipY, shipWidth - (shipHeight - shipHeight * 0.6), shipHeight * 0.6, 15 * gameScale);
+
+    // Bridge
+    fill(135, 140, 145);
+    rect(barX, shipY, shipWidth * 0.2, shipHeight * 0.4, 3 * gameScale);
   }
 }
 
-function displayDeployFleetButton() {
-
-}
-
-function displayFireButton() {
-
-}
-
 function mousePressed() {
+  if (gameState === "playing") {
+    if (!fleetDeployed) {
+      let gridRight = gridStartPointX + cellSize * (SQUARE_COUNT - 0.5);
+      let buttonX = (gridRight + width) / 2
+      let buttonY = height / 2;
+      let buttonWidth = 600 * gameScale;
+      let buttonHeight = 200 * gameScale;
+
+      if (mouseX >= buttonX - buttonWidth / 2 && mouseX <= buttonX + buttonWidth / 2 && mouseY >= buttonY - buttonHeight / 2 && mouseY <= buttonY + buttonHeight / 2) {
+        deployFleet();
+        return;
+      }
+
+      selectClickedShip();
+    }
+
+    return;
+  }
+
   if (gameState === "menu") {
     if (mouseX > width / 2 - 175 * gameScale && mouseX < width / 2 + 175 * gameScale && mouseY > height * 0.5 - 40 * gameScale && mouseY < height * 0.5 + 40 * gameScale) {
       previousGameState = "create";
@@ -423,6 +522,8 @@ async function connectToGame() {
     player2Username: "",
     guestConnecting: false,
     gameStarted: false,
+    player1FleetDeployed: false,
+    player2FleetDeployed: false,
   });
 
   if (!p5party.isHost()) {
@@ -522,7 +623,13 @@ function checkPageReload() {
 
 function displayPlayingScreen() {
   displayGrid();
-  displayShipBar();
+
+  if (!fleetDeployed) {
+    displayShipBar();
+  }
+  
+  displayDeployFleetButon();
+  displayPlacedAndDraggedShips();
 
   push();
 
@@ -541,4 +648,206 @@ function displayPlayingScreen() {
   text("Player 2: " + (game.player2Username), 25 * gameScale, 125 * gameScale);
 
   pop();
+}
+
+function getGridX() {
+  return floor((mouseX - (gridStartPointX - cellSize / 2)) / cellSize);
+}
+
+function getGridY() {
+  return floor((mouseY - (gridStartPointY - cellSize / 2)) / cellSize);
+}
+
+function canPlaceShip(shipIndex, x, y) {
+  let ship = ships[shipIndex];
+
+  let shipWidth = ship.horizontal ? ship.length : 1;
+  let shipHeight = ship.horizontal ? 1 : ship.length;
+
+  // Checks grid boundaries
+  if (x < 0 || y < 0 || x+ shipWidth > SQUARE_COUNT || y + shipHeight > SQUARE_COUNT) {
+    return false;
+  }
+
+  // Checks for overlapping ships
+  for (let i = 0; i < ships.length; i++) {
+    if (i === shipIndex || !ships[i].placed) {
+      continue;
+    }
+
+    let otherShip = ships[i];
+    let otherShipWidth = otherShip.horizontal ? otherShip.length : 1;
+    let otherShipHeight = otherShip.horizontal ? 1 : otherShip.length;
+
+    let overlaps = x < otherShip.x + otherShipWidth && x + shipWidth > otherShip.x && y < otherShip.y + otherShipHeight && y + shipHeight > otherShip.y;
+
+    if (overlaps) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function beginShipDrag(shipIndex, offsetX, offsetY) {
+  selectedShip = shipIndex;
+  draggingShip = true;
+
+  dragOffsetX = offsetX;
+  dragOffsetY = offsetY;
+
+  dragStartX = ships[shipIndex].x;
+  dragStartY = ships[shipIndex].y;
+  dragStartPlaced = ships[shipIndex].placed;
+  dragStartHorizontal = ships[shipIndex].horizontal;
+
+  previewX = getGridX() - dragOffsetX;
+  previewY = getGridY() - dragOffsetY;
+}
+
+function selectClickedShip() {
+  let barX = ((width - cellSize * SQUARE_COUNT) / 2) / 2;
+  let barY = height / 2;
+  let shipSpacing = 150 * gameScale;
+
+  // Checks every ship in the ship bar
+  for (let i = 0; i < ships.length; i++) {
+    if (ships[i].placed) {
+      continue;
+    }
+
+    let shipY = barY - 150 * gameScale + i * shipSpacing;
+    let shipWidth = ships[i].length * cellSize;
+
+    if (mouseX >= barX - shipWidth / 2 && mouseX <= barX + shipWidth / 2 && mouseY >= shipY - cellSize / 2 && mouseY <= shipY + cellSize / 2) {
+      let offsetX = floor((mouseX - (barX - shipWidth / 2)) / cellSize)
+      beginShipDrag(i, offsetX, 0);
+
+      return true;
+    }
+  }
+
+  // Checks ships already on the grid
+  let gridX = getGridX();
+  let gridY = getGridY();
+
+  for (let i = 0; i < ships.length; i ++) {
+    let ship = ships[i];
+
+    if (!ship.placed) {
+      continue;
+    }
+
+    let shipWidth = ship.horizontal ? ship.length : 1;
+    let shipHeight = ship.horizontal ? 1 : ship.length;
+
+    if (gridX >= ship.x && gridX < ship.x + shipWidth && gridY >= ship.y && gridY < ship.y + shipHeight) {
+      beginShipDrag(i, gridX - ship.x, gridY - ship.y);
+
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function mouseDragged() {
+  if (gameState === "playing" && draggingShip) {
+    previewX = getGridX() - dragOffsetX;
+    previewY = getGridY() - dragOffsetY;
+  }
+}
+
+function mouseReleased() {
+  if (!draggingShip) {
+    return;
+  }
+
+  if (canPlaceShip(selectedShip, previewX, previewY)) {
+    ships[selectedShip].x = previewX;
+    ships[selectedShip].y = previewY;
+    ships[selectedShip].placed = true;
+  }
+
+  else {
+    ships[selectedShip].x = dragStartX;
+    ships[selectedShip].y = dragStartY;
+    ships[selectedShip].placed = dragStartPlaced;
+    ships[selectedShip].horizontal = dragStartHorizontal;
+  }
+
+  selectedShip = -1;
+  draggingShip = false;
+
+  previewX = -1;
+  previewY = -1;
+}
+
+function fleetReady() {
+  for (let i = 0; i < ships.length; i++) {
+    if (!ships[i].placed) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function displayDeployFleetButon() {
+  let gridRight = gridStartPointX + cellSize * (SQUARE_COUNT - 0.5);
+  let buttonX = (gridRight + width) / 2
+  let buttonY = height / 2;
+  let buttonWidth = 600 * gameScale;
+  let buttonHeight = 200 * gameScale;
+
+  let hovering = (mouseX >= buttonX - buttonWidth / 2 && mouseX <= buttonX + buttonWidth / 2 && mouseY >= buttonY - buttonHeight / 2 && mouseY <= buttonY + buttonHeight / 2);
+
+  let ready = fleetReady();
+
+  if (fleetDeployed) {
+    fill(80, 170, 115);
+  }
+  else if (ready) {
+    if (hovering) {
+      fill(0, 70, 140);
+    }
+    else {
+      fill(20, 100, 180);
+    }
+  }
+  else {
+    fill(100);
+  }
+
+  rect(buttonX, buttonY, buttonWidth, buttonHeight, 12 * gameScale);
+
+  fill(255);
+  textSize(titleTextSize / 2);
+  textStyle(BOLD);
+
+  if (fleetDeployed) {
+    text("Fleet Deployed!", buttonX, buttonY);
+  }
+  else {
+    text("Deploy Fleet", buttonX, buttonY);
+  }
+}
+
+function deployFleet() {
+  if (!fleetReady() || fleetDeployed) {
+    return;
+  }
+
+  fleetDeployed = true;
+
+  if (myPlayerNumber === 1) {
+    game.player1FleetDeployed = true;
+  }
+  else if (myPlayerNumber === 2) {
+    game.player2FleetDeployed = true;
+  }
+
+  if (game.player1FleetDeployed && game.player2FleetDeployed) {
+    game.gameStarted = true;
+  }
 }
