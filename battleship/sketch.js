@@ -84,6 +84,7 @@ async function setup() {
 
   // Load images
   startScreenBackground = await loadImage("battleship-loading-screen-background-image.jpg");
+  gridIcons = await loadImage("grid-actions-and-results.png");
 
   titleTextSize = 150 * gameScale;
   subtitleTextSize = 40 * gameScale;
@@ -428,7 +429,7 @@ function mousePressed() {
   if (gameState === "playing") {
     if (!fleetDeployed) {
       let gridRight = gridStartPointX + cellSize * (SQUARE_COUNT - 0.5);
-      let buttonX = (gridRight + width) / 2
+      let buttonX = (gridRight + width) / 2;
       let buttonY = height / 2;
       let buttonWidth = 600 * gameScale;
       let buttonHeight = 200 * gameScale;
@@ -720,7 +721,7 @@ function selectClickedShip() {
     let shipWidth = ships[i].length * cellSize;
 
     if (mouseX >= barX - shipWidth / 2 && mouseX <= barX + shipWidth / 2 && mouseY >= shipY - cellSize / 2 && mouseY <= shipY + cellSize / 2) {
-      let offsetX = floor((mouseX - (barX - shipWidth / 2)) / cellSize)
+      let offsetX = floor((mouseX - (barX - shipWidth / 2)) / cellSize);
       beginShipDrag(i, offsetX, 0);
 
       return true;
@@ -795,7 +796,7 @@ function fleetReady() {
 
 function displayDeployFleetButon() {
   let gridRight = gridStartPointX + cellSize * (SQUARE_COUNT - 0.5);
-  let buttonX = (gridRight + width) / 2
+  let buttonX = (gridRight + width) / 2;
   let buttonY = height / 2;
   let buttonWidth = 600 * gameScale;
   let buttonHeight = 200 * gameScale;
