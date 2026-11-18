@@ -63,12 +63,18 @@ let dragStartHorizontal = true;
 let previewX = -1;
 let previewY = -1;
 
+let aimPreviewIcon;
+let fireIcon;
+let missIcon;
+let hitIcon;
+
 async function setup() {
   createCanvas(windowWidth, windowHeight);
   noStroke();
   textAlign(CENTER, CENTER);
   rectMode(CENTER);
 
+  // Variable to scale game proprtionally
   scaleX = windowWidth / 2560;
   scaleY = windowHeight / 1310;
   gameScale = min(scaleX, scaleY);
@@ -84,8 +90,12 @@ async function setup() {
 
   // Load images
   startScreenBackground = await loadImage("battleship-loading-screen-background-image.jpg");
-  gridIcons = await loadImage("grid-actions-and-results.png");
+  aimPreviewIcon = await loadImage("aim-peview-icon.png");
+  fireIcon = await loadImage("fireIcon.png");
+  missIcon = await loadImage("missIcon.png");
+  hitIcon = await loadImage();
 
+  // Scaled text sizes
   titleTextSize = 150 * gameScale;
   subtitleTextSize = 40 * gameScale;
 }
