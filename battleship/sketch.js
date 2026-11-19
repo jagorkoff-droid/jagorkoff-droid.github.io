@@ -68,6 +68,10 @@ let fireIcon;
 let missIcon;
 let hitIcon;
 
+let backgroundMusic;
+let hitSound;
+let missSound;
+
 async function setup() {
   createCanvas(windowWidth, windowHeight);
   noStroke();
@@ -91,9 +95,14 @@ async function setup() {
   // Load images
   startScreenBackground = await loadImage("battleship-loading-screen-background-image.jpg");
   aimPreviewIcon = await loadImage("aim-peview-icon.png");
-  fireIcon = await loadImage("fireIcon.png");
-  missIcon = await loadImage("missIcon.png");
-  hitIcon = await loadImage();
+  fireIcon = await loadImage("fire-icon.png");
+  missIcon = await loadImage("miss-icon.png");
+  hitIcon = await loadImage("hit-icon.png");
+
+  // Load sounds
+  gameBackgroundMusic = await loadSound("game-background-music.mp3");
+  hitSound = await loadSound("hit-sound.mp3");
+  missSound = await loadSound("miss-sound.mp3");
 
   // Scaled text sizes
   titleTextSize = 150 * gameScale;
