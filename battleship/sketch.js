@@ -1,4 +1,4 @@
-// Grid-Based Game
+// Grid-Based Game - Battleship
 // James Gorkoff
 // November 23, 2026
 //
@@ -1478,7 +1478,7 @@ function sendChatMessage() {
   // Adds the message to the shared chat
   game.chatMessages.push({
     username: username,
-    text: messageText
+    text: messageText,
   });
 
   // Keeps only the newest 7 messages
