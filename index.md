@@ -17,9 +17,9 @@
 - [Character in Grid](grid-character)
 - [Set Timeout](set-timeout)
 - [Set Interval](set-interval)
+- [Walker](walker)
 
 ## Projects
 - [Interactive Scene](scene)
 - [Arrays and Object Notation](mountain-racer)
 - [Grid-Based Game](battleship)
-- [Capstone Coding Project](capstone)
