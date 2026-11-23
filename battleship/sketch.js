@@ -305,7 +305,7 @@ function displayStartScreen() {
   fill(180);
   textSize(subtitleTextSize);
   textStyle(NORMAL);
-  text("Two Player Naval Battle", width / 2, height / 2 * 0.4);
+  text("A Two Player Sea Battle", width / 2, height / 2 * 0.4);
 
   // Create a game
   displayMenuButton(height * 0.5, "Generate Game");
@@ -704,14 +704,14 @@ function mouseReleased() {
   previewY = -1;
 }
 
-function generateBlankGrid(SQUARE_COUNT, fillValue = 0) {
+function generateBlankGrid(SQUARE_COUNT) {
   let newGrid = [];
   
   // Creates a 2D grid filled with the chosen value
   for (let y = 0; y < SQUARE_COUNT; y++) {
     newGrid.push([]);
     for (let x = 0; x < SQUARE_COUNT; x++) {
-      newGrid[y].push(fillValue);
+      newGrid[y].push(0);
     }
   }
 
@@ -1236,7 +1236,6 @@ async function connectToGame() {
     player2RestartReady: false,
 
     chatMessages: [],
-    chatMessageNumber: 0,
   });
 
   lastSeenRestartNumber = game.restartNumber;
@@ -1457,7 +1456,7 @@ function displayChat() {
         messageText = messageText.substring(0, 32) + "...";
       }
 
-      text(message.username + ": " + messageText, chatX + 15 * gameScale, chatY + 60 * gameScale + (i - firstMessage) * 40 * gameScale);
+      text(message.username + ": " + messageText, chatX + 15 * gameScale, chatY + 60 * gameScale + i * 40 * gameScale);
     }
   }
 
@@ -1487,8 +1486,6 @@ function sendChatMessage() {
     // ".shift" deletes the oldest message currently at index 0
     game.chatMessages.shift();
   }
-
-  game.chatMessageNumber++;
 
   chatInputBox.value("");
 }
