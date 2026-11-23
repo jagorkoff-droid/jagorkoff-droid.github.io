@@ -149,7 +149,8 @@ async function setup() {
   joinCodeInputBox.attribute("placeholder", "Enter 6-digit code...");
   joinCodeInputBox.attribute("maxlength", "6");
   // Removes any typed characters that are not numbers
-  // Attaches an input event to the HTML input box, the arrow function tells p5.js what to do when said event occurs, the {} contain the instructions that should be ran, ".value()" retrieves the current contents of the input box, ".replace()" is a built-in JS string method which searches through a string for something matching a specific pattern to replace it, "/" marks the start or end of the regex (regular expression), "\D" is part of the search pattern, meaning not letters, not spaces, not punctuation, and other non-digit characters, "g" means global so JS should find every matching character not just the first one, anything matching said search pattern is replaced with an empty string, so it becomes nothing
+  // Attaches an input event to the HTML input box, the arrow function tells p5.js what to do when said event occurs, the {} contain the instructions that should be ran, ".value()" retrieves the current contents of the input box, ".replace()" is a built-in JS string method which searches through a string for something matching a specific pattern to replace it, "/" marks the start or end of the regex (regular expression), "\D" is part of the search pattern, searching for non-digits, "g" means global so JS should find every matching character not just the first one, anything matching said search pattern is replaced with an empty string, so it becomes nothing
+  //.value() gives the current value inside of the text box, or lets you mutate it
   joinCodeInputBox.input(() => {
     joinCodeInputBox.value(joinCodeInputBox.value().replace(/\D/g, ""));
   });
@@ -361,7 +362,9 @@ function displayWaitingScreen(title) {
   else {
     text("Enter your opponents room code:", width / 2, height * 0.375);
 
+    // Places box at x, y position
     joinCodeInputBox.position(width / 2 - 200 * gameScale, height * 0.55 - 20 * gameScale);
+    // Unhides the box
     joinCodeInputBox.show();
 
     // Hides the join game button while the guest is connecting
@@ -604,6 +607,7 @@ function mousePressed() {
         
         // Creates a new game if the player chose to generate a game
         if (previousGameState === "create") {
+          // Generates random decimal between, 0 and 999,999.999, rounds it down, and then ensures it is six digits long, by potentially padding it with zeros
           roomCode = nf(floor(random(1000000)), 6);
           gameState = "create";
 
@@ -1443,15 +1447,13 @@ function displayChat() {
   textSize(subtitleTextSize * 0.4);
 
   if (game.chatMessages) {
-    // Only displays the last seven messages
-    let firstMessage = max(0, game.chatMessages.length - 7);
-
-    for (let i = firstMessage; i < game.chatMessages.length; i++) {
+    for (let i = 0; i < game.chatMessages.length; i++) {
       let message = game.chatMessages[i];
       let messageText = message.text;
 
       // Truncates messages that are too long to fit in the chat panel
       if (messageText.length > 32) {
+        // ".substring()" keeps everything between 0 and one index less than 32, then adds "..."
         messageText = messageText.substring(0, 32) + "...";
       }
 
@@ -1480,8 +1482,9 @@ function sendChatMessage() {
     text: messageText
   });
 
-  // Keeps only the newest 30 messages
-  if (game.chatMessages.length > 30) {
+  // Keeps only the newest 7 messages
+  if (game.chatMessages.length > 7) {
+    // ".shift" deletes the oldest message currently at index 0
     game.chatMessages.shift();
   }
 
