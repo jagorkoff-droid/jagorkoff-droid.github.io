@@ -2,13 +2,15 @@
 
 let walkers = [];
 
+let toggleSpawn = false;
+
 class Walker {
-  constructor(x, y) {
+  constructor(x, y, colour) {
     this.x = x;
     this.y = y;
     this.speed = 5;
     this.diamter = 5;
-    this.colour = "red";
+    this.colour = colour;
   }
 
   display() {
@@ -41,20 +43,40 @@ class Walker {
 async function setup() {
   createCanvas(windowWidth, windowHeight);
   noStroke();
-
-  for (let i = 0; i < 101; i++) {
-    let newWalker;
-
-    newWalker = new Walker(random(width), random(height));
-    newWalker.colour = color(random(255), random(255), random(255));
-
-    walkers.push(newWalker);
-  }
 }
 
 function draw() {
   for (let i = 0; i < walkers.length; i++) {
     walkers[i].move();
     walkers[i].display();
+  }
+
+  automateWalkers();
+}
+
+function mousePressed() {
+  toggleSpawn = !toggleSpawn;
+}
+
+function spawnWalker() {
+  let newWalker = new Walker(mouseX, mouseY, color(random(255), random(255), random(255)));
+  
+  walkers.push(newWalker);
+}
+
+function automateWalkers() {
+  if (toggleSpawn) {
+    multiplyWalkers();
+  }
+
+  if (!toggleSpawn) {
+    walkers = [];
+    clear();
+  }
+}
+
+function multiplyWalkers() {
+  for (i = 0; i < 5; i++) {
+    spawnWalker();
   }
 }
