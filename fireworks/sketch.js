@@ -6,8 +6,8 @@ class Particle {
   constructor(x, y, r, g, b) {
     this.x = x;
     this.y = y;
-    this.dx = random(-5, 5);
-    this.dy = random(-5, 5);
+    this.dx = random(-5, 5) * random(1, 2);
+    this.dy = random(-5, 5) * random(1, 2);
     this.diameter = random(4, 6);
     this.r = r;
     this.g = g;
@@ -25,7 +25,7 @@ class Particle {
     this.x += this.dx;
     this.y += this.dy;
 
-    this.opacity--;
+    this.opacity -= 3.5;
   }
 
   isDead() {
